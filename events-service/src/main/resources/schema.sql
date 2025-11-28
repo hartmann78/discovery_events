@@ -63,6 +63,6 @@ create table if not exists comments
     from_event_initiator boolean                                         not null,
     author_id            bigint references users (id) on delete cascade  not null,
     event_id             bigint references events (id) on delete cascade not null,
-    created              timestamp with time zone                        not null,
-    updated              timestamp with time zone                        null
+    created_on           varchar                                         not null,
+    updated_on           varchar                                         null
 );

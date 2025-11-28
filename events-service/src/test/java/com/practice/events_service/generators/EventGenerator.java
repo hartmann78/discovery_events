@@ -37,6 +37,8 @@ public class EventGenerator {
                 .createdOn(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
                 .publishedOn(null)
                 .state(Event.State.PUBLISHED)
+                .commentsAvailable(true)
+                .showComments(true)
                 .build();
     }
 

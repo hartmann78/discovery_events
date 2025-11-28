@@ -1,0 +1,23 @@
+services:
+  app:
+    image: 'stats-service-app:latest'
+    build:
+      context: .
+    container_name: stats-service
+    depends_on:
+      - stats-service-db
+    ports:
+      - "9090:9090"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://stats-service-db:5432/stats-service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DLL_AUTO=update
+      - SERVER_PORT=9090
+  stats-service-db:
+    image: postgres:17.4
+    container_name: stats-service-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=stats-service

@@ -1,0 +1,23 @@
+services:
+  app:
+    image: 'events-service-app:latest'
+    build:
+      context: .
+    container_name: events-service
+    depends_on:
+      - events-service-db
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://events-service-db:5432/events-service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DLL_AUTO=update
+      - SERVER_PORT=8080
+  events-service-db:
+    image: postgres:17.4
+    container_name: events-service-db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=events-service

@@ -128,7 +128,7 @@ public class PrivateEventsControllerTests {
                         .param("from", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(initiatorId))
+                .andExpect(jsonPath("$[0].id").value(eventId))
                 .andExpect(jsonPath("$[0].title").value(newEventDTO.getTitle()))
                 .andExpect(jsonPath("$[0].annotation").value(newEventDTO.getAnnotation()))
                 .andExpect(jsonPath("$[0].eventDate").value(newEventDTO.getEventDate()))
