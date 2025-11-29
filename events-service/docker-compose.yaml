@@ -14,6 +14,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DLL_AUTO=update
       - SERVER_PORT=8080
+    networks:
+      - discovery-events-network
   events-service-db:
     image: postgres:17.4
     container_name: events-service-db
@@ -21,3 +23,10 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=events-service
+    networks:
+      - discovery-events-network
+
+networks:
+  discovery-events-network:
+    name: discovery-events-network
+    driver: bridge
