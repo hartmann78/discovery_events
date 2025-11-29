@@ -22,16 +22,23 @@ import java.time.format.DateTimeFormatter;
 @RequiredArgsConstructor
 public class StatsClient {
     private final ObjectMapper objectMapper;
-    private static final String HOST = "localhost";
-    private static final int PORT = 9090;
     private static final String APP = "events-service";
 
+    private static String HOST;
+    private static final int PORT = 9090;
+
     public Boolean checkServiceAvailability() {
-        try (Socket ignored = new Socket(HOST, PORT)) {
+        try (Socket ignored = new Socket("host.docker.internal", PORT)) {
+            HOST = "host.docker.internal";
             return true;
-        } catch (IOException e) {
-            System.out.println("Сервер статистики недоступен");
-            return false;
+        } catch (IOException e1) {
+            try (Socket ignored = new Socket("localhost", PORT)) {
+                HOST = "localhost";
+                return true;
+            } catch (IOException e2) {
+                System.out.println("Сервис статистики недоступен!");
+                return false;
+            }
         }
     }
 
