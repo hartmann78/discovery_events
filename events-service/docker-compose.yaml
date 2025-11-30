@@ -14,6 +14,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=postgres
       - SPRING_JPA_HIBERNATE_DLL_AUTO=update
       - SERVER_PORT=8080
+      - STATS_SERVICE_HOST=host.docker.internal
+      - STATS_SERVICE_PORT=9090
     networks:
       - discovery-events-network
   events-service-db:
