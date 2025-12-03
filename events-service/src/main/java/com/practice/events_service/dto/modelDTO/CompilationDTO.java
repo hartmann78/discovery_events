@@ -1,17 +1,15 @@
 package com.practice.events_service.dto.modelDTO;
 
 import com.practice.events_service.dto.shortDTO.EventShortDTO;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CompilationDTO {
     private Long id;
     private String title;

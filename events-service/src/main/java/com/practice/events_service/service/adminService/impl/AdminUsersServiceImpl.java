@@ -42,7 +42,7 @@ public class AdminUsersServiceImpl implements AdminUsersService {
 
     @Override
     public void deleteUser(Long userId) {
-        checkService.userExistsCheck(userId);
+        checkService.findUser(userId);
 
         userRepository.deleteById(userId);
     }

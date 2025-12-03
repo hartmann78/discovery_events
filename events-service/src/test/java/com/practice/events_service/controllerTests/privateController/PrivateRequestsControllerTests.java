@@ -13,10 +13,7 @@ import com.practice.events_service.generators.CategoryGenerator;
 import com.practice.events_service.generators.EventGenerator;
 import com.practice.events_service.generators.UserGenerator;
 import com.practice.events_service.model.ParticipationRequest;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PrivateRequestsControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -44,14 +40,14 @@ public class PrivateRequestsControllerTests {
     @Autowired
     private EventGenerator eventGenerator;
 
-    private static Long initiatorId;
-    private static Long requesterId;
-    private static Long categoryId;
-    private static Long eventId;
-    private static Long requestId;
+    private Long initiatorId;
+    private Long requesterId;
+    private Long categoryId;
+    private Long eventId;
+    private Long requestId;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void postEventParticipationRequest() throws Exception {
         // Create user
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
@@ -125,7 +121,6 @@ public class PrivateRequestsControllerTests {
     }
 
     @Test
-    @Order(2)
     void getUserEventRequests() throws Exception {
         mockMvc.perform(get("/users/{userId}/requests", requesterId))
                 .andExpect(status().isOk())
@@ -137,7 +132,6 @@ public class PrivateRequestsControllerTests {
     }
 
     @Test
-    @Order(3)
     void cancelEventParticipationRequest() throws Exception {
         mockMvc.perform(patch("/users/{userId}/requests/{requestId}/cancel", requesterId, requestId))
                 .andExpect(status().isOk())

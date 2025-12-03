@@ -29,7 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PrivateCommentsServiceTests {
     @Autowired
     private AdminUsersService adminUsersService;
@@ -55,16 +54,15 @@ public class PrivateCommentsServiceTests {
     @Autowired
     private CommentGenerator commentGenerator;
 
-    private static UserDTO initiatorDTO;
-    private static CategoryDTO categoryDTO;
-    private static EventFullDTO eventFullDTO1;
-    private static EventFullDTO eventFullDTO2;
+    private UserDTO initiatorDTO;
+    private CategoryDTO categoryDTO;
+    private EventFullDTO eventFullDTO1;
 
-    private static UserDTO commentAuthorDTO;
-    private static CommentDTO commentDTO1;
+    private UserDTO commentAuthorDTO;
+    private CommentDTO commentDTO1;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void postComment() {
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
         initiatorDTO = adminUsersService.postNewUser(newUserRequest);
@@ -100,7 +98,6 @@ public class PrivateCommentsServiceTests {
     }
 
     @Test
-    @Order(2)
     void updateComment() {
         UpdateCommentRequest updateCommentRequest = commentGenerator.generateUpdateCommentRequest();
 
@@ -111,42 +108,44 @@ public class PrivateCommentsServiceTests {
     }
 
     @Test
-    @Order(3)
     void notParticipantOrInitiatorTest() {
         NewEventDTO newEventDTO2 = eventGenerator.generateNewEventDTO(categoryDTO.getId());
-        eventFullDTO2 = privateEventsService.addNewEvent(initiatorDTO.getId(), newEventDTO2);
+        EventFullDTO eventFullDTO2 = privateEventsService.addNewEvent(initiatorDTO.getId(), newEventDTO2);
 
         NewCommentDTO newCommentDTO2 = commentGenerator.generateNewCommentDTO();
         assertThrows(ForbiddenException.class, () -> privateCommentsService.postComment(commentAuthorDTO.getId(), eventFullDTO2.getId(), newCommentDTO2));
     }
 
     @Test
-    @Order(4)
     void eventNotPublishedTest() {
+        NewEventDTO newEventDTO3 = eventGenerator.generateNewEventDTO(categoryDTO.getId());
+        EventFullDTO eventFullDTO3 = privateEventsService.addNewEvent(initiatorDTO.getId(), newEventDTO3);
+
         NewCommentDTO newCommentDTO2 = commentGenerator.generateNewCommentDTO();
-        assertThrows(EventNotPublishedException.class, () -> privateCommentsService.postComment(initiatorDTO.getId(), eventFullDTO2.getId(), newCommentDTO2));
+        assertThrows(EventNotPublishedException.class, () -> privateCommentsService.postComment(initiatorDTO.getId(), eventFullDTO3.getId(), newCommentDTO2));
 
     }
 
     @Test
-    @Order(5)
     void commentsUnavailableTest() {
         UpdateEventAdminRequest updateEventAdminRequest = eventGenerator.generateUpdateEventAdminRequest(categoryDTO.getId());
         updateEventAdminRequest.setCommentsAvailable(false);
         updateEventAdminRequest.setStateAction(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT);
-        eventFullDTO2 = adminEventsService.patchEventById(eventFullDTO2.getId(), updateEventAdminRequest);
 
-        ParticipationRequestDTO participationRequestDTO2 = privateRequestsService.postEventParticipationRequest(commentAuthorDTO.getId(), eventFullDTO2.getId());
+        NewEventDTO newEventDTO4 = eventGenerator.generateNewEventDTO(categoryDTO.getId());
+        EventFullDTO eventFullDTO4 = privateEventsService.addNewEvent(initiatorDTO.getId(), newEventDTO4);
+        adminEventsService.patchEventById(eventFullDTO4.getId(), updateEventAdminRequest);
+
+        ParticipationRequestDTO participationRequestDTO2 = privateRequestsService.postEventParticipationRequest(commentAuthorDTO.getId(), eventFullDTO4.getId());
         EventRequestStatusUpdateRequest updateRequest2 = eventRequestStatusUpdateRequestGenerator.generateUpdateRequest
                 (List.of(participationRequestDTO2.getId()), EventRequestStatusUpdateRequest.Status.CONFIRMED);
-        privateEventsService.patchEventRequestsByUserId(initiatorDTO.getId(), eventFullDTO2.getId(), updateRequest2);
+        privateEventsService.patchEventRequestsByUserId(initiatorDTO.getId(), eventFullDTO4.getId(), updateRequest2);
 
         NewCommentDTO newCommentDTO2 = commentGenerator.generateNewCommentDTO();
-        assertThrows(ForbiddenException.class, () -> privateCommentsService.postComment(commentAuthorDTO.getId(), eventFullDTO2.getId(), newCommentDTO2));
+        assertThrows(ForbiddenException.class, () -> privateCommentsService.postComment(commentAuthorDTO.getId(), eventFullDTO4.getId(), newCommentDTO2));
     }
 
     @Test
-    @Order(6)
     void deleteComment() {
         privateCommentsService.deleteComment(commentAuthorDTO.getId(), eventFullDTO1.getId(), commentDTO1.getId());
 

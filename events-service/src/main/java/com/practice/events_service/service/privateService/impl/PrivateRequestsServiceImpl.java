@@ -1,6 +1,7 @@
 package com.practice.events_service.service.privateService.impl;
 
 import com.practice.events_service.dto.modelDTO.ParticipationRequestDTO;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.exception.other.ForbiddenException;
 import com.practice.events_service.exception.conflict.*;
 import com.practice.events_service.mapper.ParticipationRequestMapper;
@@ -26,7 +27,7 @@ public class PrivateRequestsServiceImpl implements PrivateRequestsService {
 
     @Override
     public List<ParticipationRequestDTO> getUserEventRequests(Long userId) {
-        checkService.userExistsCheck(userId);
+        checkService.findUser(userId);
         List<ParticipationRequest> requests = participationRequestRepository.getRequesterRequests(userId);
 
         return participationRequestMapper.requestListToRequestDTOList(requests);
@@ -45,7 +46,7 @@ public class PrivateRequestsServiceImpl implements PrivateRequestsService {
             throw new RequestIsFromInitiatorException("Нельзя добавить запрос от инициатора события!");
         }
 
-        if (event.getState() != Event.State.PUBLISHED) {
+        if (event.getState() != State.PUBLISHED) {
             throw new EventNotPublishedException("Событие ещё не опубликовано!");
         }
 
@@ -73,7 +74,7 @@ public class PrivateRequestsServiceImpl implements PrivateRequestsService {
 
     @Override
     public ParticipationRequestDTO cancelEventParticipationRequest(Long userId, Long requestId) {
-        checkService.userExistsCheck(userId);
+        checkService.findUser(userId);
         ParticipationRequest request = checkService.findParticipationRequest(requestId);
 
         if (!request.getRequester().getId().equals(userId)) {

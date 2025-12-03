@@ -8,13 +8,11 @@ import com.practice.events_service.dto.newDTO.NewCategoryDTO;
 import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.newDTO.NewUserRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.generators.CategoryGenerator;
 import com.practice.events_service.generators.EventGenerator;
 import com.practice.events_service.generators.UserGenerator;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +29,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PublicEventsControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -45,18 +42,19 @@ public class PublicEventsControllerTests {
     @Autowired
     private EventGenerator eventGenerator;
 
-    private static NewUserRequest newUserRequest;
-    private static NewCategoryDTO newCategoryDTO;
-    private static NewEventDTO newEventDTO;
-    private static UpdateEventAdminRequest updateEventAdminRequest;
+    private NewUserRequest newUserRequest;
+    private NewCategoryDTO newCategoryDTO;
+    private NewEventDTO newEventDTO;
+    private UpdateEventAdminRequest updateEventAdminRequest;
 
-    private static Long initiatorId;
-    private static Long categoryId;
-    private static Long eventId;
+    private Long initiatorId;
+    private Long categoryId;
+    private Long eventId;
 
-    @Test
-    @Order(1)
-    void getPublishedEvents() throws Exception {
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    @BeforeEach
+    void postEvent() throws Exception {
         // Create user
         newUserRequest = userGenerator.generateNewUserRequest();
         String newUserRequestJson = objectMapper.writeValueAsString(newUserRequest);
@@ -100,13 +98,16 @@ public class PublicEventsControllerTests {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(updateEventAdminRequestJson))
                 .andExpect(status().isOk());
+    }
 
+    @Test
+    void getPublishedEvents() throws Exception {
         mockMvc.perform(get("/events")
                         .param("text", updateEventAdminRequest.getDescription())
                         .param("categories", updateEventAdminRequest.getCategory().toString())
                         .param("paid", updateEventAdminRequest.getPaid().toString())
-                        .param("rangeStart", LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                        .param("rangeEnd", LocalDateTime.now().plusDays(14).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .param("rangeStart", LocalDateTime.now().minusDays(7).format(dateTimeFormatter))
+                        .param("rangeEnd", LocalDateTime.now().plusDays(14).format(dateTimeFormatter))
                         .param("onlyAvailable", String.valueOf(false))
                         .param("sort", "EVENT_DATE")
                         .param("from", "0")
@@ -115,7 +116,7 @@ public class PublicEventsControllerTests {
                 .andExpect(jsonPath("$[0].id").value(eventId))
                 .andExpect(jsonPath("$[0].title").value(updateEventAdminRequest.getTitle()))
                 .andExpect(jsonPath("$[0].annotation").value(updateEventAdminRequest.getAnnotation()))
-                .andExpect(jsonPath("$[0].eventDate").value(updateEventAdminRequest.getEventDate()))
+                .andExpect(jsonPath("$[0].eventDate").value(updateEventAdminRequest.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$[0].initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$[0].initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$[0].category.id").value(categoryId))
@@ -125,7 +126,6 @@ public class PublicEventsControllerTests {
     }
 
     @Test
-    @Order(2)
     void getPublishedEventById() throws Exception {
         // Get event
         mockMvc.perform(get("/events/{eventId}", eventId))
@@ -134,7 +134,7 @@ public class PublicEventsControllerTests {
                 .andExpect(jsonPath("$.title").value(updateEventAdminRequest.getTitle()))
                 .andExpect(jsonPath("$.description").value(updateEventAdminRequest.getDescription()))
                 .andExpect(jsonPath("$.annotation").value(updateEventAdminRequest.getAnnotation()))
-                .andExpect(jsonPath("$.eventDate").value(updateEventAdminRequest.getEventDate()))
+                .andExpect(jsonPath("$.eventDate").value(updateEventAdminRequest.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$.initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$.initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$.category.id").value(categoryId))
@@ -147,7 +147,7 @@ public class PublicEventsControllerTests {
                 .andExpect(jsonPath("$.confirmedRequests").exists())
                 .andExpect(jsonPath("$.createdOn").exists())
                 .andExpect(jsonPath("$.publishedOn").exists())
-                .andExpect(jsonPath("$.state").value(EventFullDTO.State.PUBLISHED.toString()))
+                .andExpect(jsonPath("$.state").value(State.PUBLISHED.toString()))
                 .andExpect(jsonPath("$.views").exists());
     }
 }

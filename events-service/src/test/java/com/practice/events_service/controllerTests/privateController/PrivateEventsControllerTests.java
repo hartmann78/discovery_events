@@ -11,17 +11,14 @@ import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
 import com.practice.events_service.dto.updateRequest.UpdateEventUserRequest;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.generators.CategoryGenerator;
 import com.practice.events_service.generators.EventGenerator;
 import com.practice.events_service.generators.EventRequestStatusUpdateRequestGenerator;
 import com.practice.events_service.generators.UserGenerator;
 import com.practice.events_service.dto.newDTO.NewUserRequest;
-import com.practice.events_service.model.Event;
 import com.practice.events_service.model.ParticipationRequest;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +26,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -37,7 +35,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PrivateEventsControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -53,19 +50,21 @@ public class PrivateEventsControllerTests {
     @Autowired
     private EventRequestStatusUpdateRequestGenerator eventRequestStatusUpdateRequestGenerator;
 
-    private static NewUserRequest newUserRequest;
-    private static NewUserRequest requester;
-    private static NewCategoryDTO newCategoryDTO;
-    private static NewEventDTO newEventDTO;
+    private NewUserRequest newUserRequest;
+    private NewUserRequest requester;
+    private NewCategoryDTO newCategoryDTO;
+    private NewEventDTO newEventDTO;
 
-    private static Long initiatorId;
-    private static Long requesterId;
-    private static Long categoryId;
-    private static Long eventId;
-    private static Long requestId;
+    private Long initiatorId;
+    private Long requesterId;
+    private Long categoryId;
+    private Long eventId;
+    private Long requestId;
+
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Test
-    @Order(1)
+    @BeforeEach
     void addNewEvent() throws Exception {
         // Create user
         newUserRequest = userGenerator.generateNewUserRequest();
@@ -101,7 +100,7 @@ public class PrivateEventsControllerTests {
                 .andExpect(jsonPath("$.title").value(newEventDTO.getTitle()))
                 .andExpect(jsonPath("$.description").value(newEventDTO.getDescription()))
                 .andExpect(jsonPath("$.annotation").value(newEventDTO.getAnnotation()))
-                .andExpect(jsonPath("$.eventDate").value(newEventDTO.getEventDate()))
+                .andExpect(jsonPath("$.eventDate").value(newEventDTO.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$.initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$.initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$.category.id").value(categoryId))
@@ -114,7 +113,7 @@ public class PrivateEventsControllerTests {
                 .andExpect(jsonPath("$.confirmedRequests").exists())
                 .andExpect(jsonPath("$.createdOn").exists())
                 .andExpect(jsonPath("$.publishedOn").doesNotExist())
-                .andExpect(jsonPath("$.state").value(Event.State.PENDING.toString()))
+                .andExpect(jsonPath("$.state").value(State.PENDING.toString()))
                 .andExpect(jsonPath("$.views").exists())
                 .andExpect(jsonPath("$.comments").exists());
 
@@ -122,7 +121,6 @@ public class PrivateEventsControllerTests {
     }
 
     @Test
-    @Order(2)
     void getEvents() throws Exception {
         mockMvc.perform(get("/users/{userId}/events", initiatorId)
                         .param("from", "0")
@@ -131,7 +129,7 @@ public class PrivateEventsControllerTests {
                 .andExpect(jsonPath("$[0].id").value(eventId))
                 .andExpect(jsonPath("$[0].title").value(newEventDTO.getTitle()))
                 .andExpect(jsonPath("$[0].annotation").value(newEventDTO.getAnnotation()))
-                .andExpect(jsonPath("$[0].eventDate").value(newEventDTO.getEventDate()))
+                .andExpect(jsonPath("$[0].eventDate").value(newEventDTO.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$[0].initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$[0].initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$[0].category.id").value(categoryId))
@@ -141,7 +139,6 @@ public class PrivateEventsControllerTests {
     }
 
     @Test
-    @Order(3)
     void getEventById() throws Exception {
         mockMvc.perform(get("/users/{userId}/events/{eventId}", initiatorId, eventId))
                 .andExpect(status().isOk())
@@ -149,7 +146,7 @@ public class PrivateEventsControllerTests {
                 .andExpect(jsonPath("$.title").value(newEventDTO.getTitle()))
                 .andExpect(jsonPath("$.description").value(newEventDTO.getDescription()))
                 .andExpect(jsonPath("$.annotation").value(newEventDTO.getAnnotation()))
-                .andExpect(jsonPath("$.eventDate").value(newEventDTO.getEventDate()))
+                .andExpect(jsonPath("$.eventDate").value(newEventDTO.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$.initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$.initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$.category.id").value(categoryId))
@@ -168,9 +165,8 @@ public class PrivateEventsControllerTests {
     }
 
     @Test
-    @Order(4)
     void getEventRequests() throws Exception {
-        // Publish event
+        // Publish first event
         UpdateEventAdminRequest updateEventAdminRequest = eventGenerator.generateUpdateEventAdminRequest(newEventDTO.getCategory());
         updateEventAdminRequest.setStateAction(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT);
 
@@ -218,7 +214,6 @@ public class PrivateEventsControllerTests {
     }
 
     @Test
-    @Order(5)
     void patchEvent() throws Exception {
         // Create second event
         NewEventDTO newEventDTO2 = eventGenerator.generateNewEventDTO(categoryId);
@@ -246,7 +241,7 @@ public class PrivateEventsControllerTests {
                 .andExpect(jsonPath("$.title").value(updateEventUserRequest.getTitle()))
                 .andExpect(jsonPath("$.description").value(updateEventUserRequest.getDescription()))
                 .andExpect(jsonPath("$.annotation").value(updateEventUserRequest.getAnnotation()))
-                .andExpect(jsonPath("$.eventDate").value(updateEventUserRequest.getEventDate()))
+                .andExpect(jsonPath("$.eventDate").value(updateEventUserRequest.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$.initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$.initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$.category.id").value(categoryId))
@@ -259,14 +254,42 @@ public class PrivateEventsControllerTests {
                 .andExpect(jsonPath("$.confirmedRequests").exists())
                 .andExpect(jsonPath("$.createdOn").exists())
                 .andExpect(jsonPath("$.publishedOn").doesNotExist())
-                .andExpect(jsonPath("$.state").value(EventFullDTO.State.PENDING.toString()))
+                .andExpect(jsonPath("$.state").value(State.PENDING.toString()))
                 .andExpect(jsonPath("$.views").exists())
                 .andExpect(jsonPath("$.comments").doesNotExist());
     }
 
     @Test
-    @Order(6)
     void patchEventRequests() throws Exception {
+        // Publish first event
+        UpdateEventAdminRequest updateEventAdminRequest = eventGenerator.generateUpdateEventAdminRequest(newEventDTO.getCategory());
+        updateEventAdminRequest.setStateAction(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT);
+
+        String updateEventAdminRequestJson = objectMapper.writeValueAsString(updateEventAdminRequest);
+
+        mockMvc.perform(patch("/admin/events/{eventId}", eventId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(updateEventAdminRequestJson))
+                .andExpect(status().isOk());
+
+        // Create requester
+        requester = userGenerator.generateNewUserRequest();
+        String requesterJson = objectMapper.writeValueAsString(requester);
+
+        ResultActions userResult = mockMvc.perform(post("/admin/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(requesterJson))
+                .andExpect(status().isCreated());
+
+        requesterId = objectMapper.readValue(userResult.andReturn().getResponse().getContentAsString(), UserDTO.class).getId();
+
+        // Create participationRequest
+        ResultActions participationRequestResult = mockMvc.perform(post("/users/{userId}/requests", requesterId)
+                        .param("eventId", eventId.toString()))
+                .andExpect(status().isCreated());
+
+        requestId = objectMapper.readValue(participationRequestResult.andReturn().getResponse().getContentAsString(), ParticipationRequestDTO.class).getId();
+
         // Accept request to the first event
         EventRequestStatusUpdateRequest updateRequest = eventRequestStatusUpdateRequestGenerator
                 .generateUpdateRequest(List.of(requestId), EventRequestStatusUpdateRequest.Status.CONFIRMED);
@@ -282,7 +305,6 @@ public class PrivateEventsControllerTests {
     }
 
     @Test
-    @Order(7)
     void patchEventCommentsStateHideComments() throws Exception {
         // To the first event (Published)
         UpdateEventCommentsState updateEventCommentsState = eventGenerator.generateUpdateEventCommentsState(true, false);
@@ -296,7 +318,6 @@ public class PrivateEventsControllerTests {
     }
 
     @Test
-    @Order(7)
     void patchEventCommentsStateShowComments() throws Exception {
         // To the first event (Published)
         UpdateEventCommentsState updateEventCommentsState = eventGenerator.generateUpdateEventCommentsState(true, true);

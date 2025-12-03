@@ -6,6 +6,8 @@ import com.practice.events_service.dto.modelDTO.UserDTO;
 import com.practice.events_service.dto.newDTO.NewCategoryDTO;
 import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.newDTO.NewUserRequest;
+import com.practice.events_service.enums.State;
+import com.practice.events_service.enums.Sort;
 import com.practice.events_service.dto.shortDTO.EventShortDTO;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.generators.CategoryGenerator;
@@ -24,14 +26,13 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PublicEventsServiceTests {
     @Autowired
     private AdminUsersService adminUsersService;
@@ -51,25 +52,16 @@ public class PublicEventsServiceTests {
     @Autowired
     private EventGenerator eventGenerator;
 
-    private static UserDTO initiatorDTO;
-    private static CategoryDTO categoryDTO;
-    private static EventFullDTO eventFullDTO;
+    private EventFullDTO eventFullDTO;
+    private MockHttpServletRequest request;
 
-    private static MockHttpServletRequest request;
-
-    @BeforeAll
-    static void createMockHttpServletRequest() {
-        request = new MockHttpServletRequest();
-    }
-
-    @Test
-    @Order(1)
-    void getPublishedEvents() throws IOException, InterruptedException, URISyntaxException {
+    @BeforeEach
+    void postEvent() {
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
-        initiatorDTO = adminUsersService.postNewUser(newUserRequest);
+        UserDTO initiatorDTO = adminUsersService.postNewUser(newUserRequest);
 
         NewCategoryDTO newCategoryDTO = categoryGenerator.generateNewCategoryDTO();
-        categoryDTO = adminCategoriesService.addNewCategory(newCategoryDTO);
+        CategoryDTO categoryDTO = adminCategoriesService.addNewCategory(newCategoryDTO);
 
         NewEventDTO newEventDTO = eventGenerator.generateNewEventDTO(categoryDTO.getId());
         eventFullDTO = privateEventsService.addNewEvent(initiatorDTO.getId(), newEventDTO);
@@ -78,16 +70,21 @@ public class PublicEventsServiceTests {
         updateEventAdminRequest.setStateAction(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT);
         eventFullDTO = adminEventsService.patchEventById(eventFullDTO.getId(), updateEventAdminRequest);
 
+        request = new MockHttpServletRequest();
+    }
+
+    @Test
+    void getPublishedEvents() throws IOException, InterruptedException, URISyntaxException {
         request.setRequestURI("/events");
 
         List<EventShortDTO> eventShortDTOS = publicEventsService.getPublishedEvents(
                 eventFullDTO.getDescription(),
                 new Long[]{eventFullDTO.getCategory().getId()},
-                newEventDTO.getPaid(),
-                LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                LocalDateTime.now().plusDays(14).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                eventFullDTO.getPaid(),
+                LocalDateTime.now().minusDays(7),
+                LocalDateTime.now().plusDays(14),
                 true,
-                "EVENT_DATE",
+                Sort.EVENT_DATE,
                 0,
                 10,
                 request);
@@ -96,7 +93,6 @@ public class PublicEventsServiceTests {
     }
 
     @Test
-    @Order(2)
     void getPublishedEventById() throws IOException, InterruptedException, URISyntaxException {
         EventFullDTO getEvent = publicEventsService.getPublishedEventById(eventFullDTO.getId(), request);
 
@@ -104,7 +100,7 @@ public class PublicEventsServiceTests {
         assertEquals(eventFullDTO.getTitle(), getEvent.getTitle());
         assertEquals(eventFullDTO.getDescription(), getEvent.getDescription());
         assertEquals(eventFullDTO.getAnnotation(), getEvent.getAnnotation());
-        assertEquals(eventFullDTO.getEventDate(), getEvent.getEventDate());
+        assertEquals(eventFullDTO.getEventDate().truncatedTo(ChronoUnit.SECONDS), getEvent.getEventDate().truncatedTo(ChronoUnit.SECONDS));
         assertEquals(eventFullDTO.getInitiator().getId(), getEvent.getInitiator().getId());
         assertEquals(eventFullDTO.getInitiator().getName(), getEvent.getInitiator().getName());
         assertEquals(eventFullDTO.getCategory().getId(), getEvent.getCategory().getId());
@@ -115,9 +111,9 @@ public class PublicEventsServiceTests {
         assertEquals(eventFullDTO.getPaid(), getEvent.getPaid());
         assertEquals(eventFullDTO.getRequestModeration(), getEvent.getRequestModeration());
         assertEquals(eventFullDTO.getConfirmedRequests(), getEvent.getConfirmedRequests());
-        assertEquals(eventFullDTO.getCreatedOn(), getEvent.getCreatedOn());
+        assertEquals(eventFullDTO.getCreatedOn().truncatedTo(ChronoUnit.SECONDS), getEvent.getCreatedOn().truncatedTo(ChronoUnit.SECONDS));
         assertNotNull(getEvent.getPublishedOn());
-        assertEquals(EventFullDTO.State.PUBLISHED, getEvent.getState());
+        assertEquals(State.PUBLISHED, getEvent.getState());
         assertEquals(0, getEvent.getViews());
     }
 }

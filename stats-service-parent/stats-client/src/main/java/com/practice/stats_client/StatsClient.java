@@ -16,7 +16,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Component
 @RequiredArgsConstructor
@@ -24,7 +23,6 @@ public class StatsClient {
     private final ObjectMapper objectMapper;
     private final String HOST;
     private final int PORT;
-    private static final String APP = "events-service";
 
     public Boolean checkServiceAvailability() {
         try (Socket ignored = new Socket(HOST, PORT)) {
@@ -41,10 +39,10 @@ public class StatsClient {
         URI postURI = URI.create(String.format("http://%s:%d/hit", HOST, PORT));
 
         EndpointHit endpointHit = EndpointHit.builder()
-                .app(APP)
+                .app("events-service")
                 .uri(request.getRequestURI())
                 .ip(request.getRemoteAddr())
-                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .timestamp(LocalDateTime.now())
                 .build();
 
         String endpointHitJson = objectMapper.writeValueAsString(endpointHit);

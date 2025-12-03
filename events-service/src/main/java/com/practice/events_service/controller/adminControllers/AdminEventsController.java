@@ -7,10 +7,12 @@ import com.practice.events_service.service.adminService.AdminEventsService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -24,8 +26,8 @@ public class AdminEventsController {
     public ResponseEntity<List<EventFullDTO>> getEvents(@RequestParam(required = false) Long[] users,
                                                         @RequestParam(required = false) String[] states,
                                                         @RequestParam(required = false) Long[] categories,
-                                                        @RequestParam(required = false) String rangeStart,
-                                                        @RequestParam(required = false) String rangeEnd,
+                                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeStart,
+                                                        @RequestParam(required = false) @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime rangeEnd,
                                                         @RequestParam(required = false, defaultValue = "0") int from,
                                                         @RequestParam(required = false, defaultValue = "10") int size) {
         return new ResponseEntity<>(adminEventsService.getEvents(users, states, categories, rangeStart, rangeEnd, from, size), HttpStatus.OK);

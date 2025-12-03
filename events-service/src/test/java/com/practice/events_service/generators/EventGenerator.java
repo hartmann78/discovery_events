@@ -4,6 +4,7 @@ import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
 import com.practice.events_service.dto.updateRequest.UpdateEventUserRequest;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.model.Category;
 import com.practice.events_service.model.Event;
 import com.practice.events_service.dto.other.Location;
@@ -12,7 +13,6 @@ import net.bytebuddy.utility.RandomString;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
 @Component
@@ -34,9 +34,9 @@ public class EventGenerator {
                 .requestModeration(true)
                 .confirmedRequests(0L)
                 .views(0L)
-                .createdOn(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .createdOn(LocalDateTime.now())
                 .publishedOn(null)
-                .state(Event.State.PUBLISHED)
+                .state(State.PUBLISHED)
                 .commentsAvailable(true)
                 .showComments(true)
                 .build();
@@ -103,8 +103,8 @@ public class EventGenerator {
         return RandomString.make(20);
     }
 
-    private String generateEventDate() {
-        return LocalDateTime.now().plusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+    private LocalDateTime generateEventDate() {
+        return LocalDateTime.now().plusDays(7);
     }
 
     private Float generateLat() {

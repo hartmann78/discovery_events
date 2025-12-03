@@ -1,9 +1,11 @@
 package com.practice.events_service.dto.updateRequest;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class UpdateEventCommentsState {
     private Boolean commentsAvailable;

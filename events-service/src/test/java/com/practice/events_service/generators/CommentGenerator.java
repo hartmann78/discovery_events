@@ -9,7 +9,6 @@ import net.bytebuddy.utility.RandomString;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Component
 public class CommentGenerator {
@@ -19,7 +18,7 @@ public class CommentGenerator {
                 .fromEventInitiator(event.getInitiator().equals(author))
                 .author(author)
                 .event(event)
-                .createdOn(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .createdOn(LocalDateTime.now())
                 .build();
     }
 

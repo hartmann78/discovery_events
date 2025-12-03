@@ -4,19 +4,18 @@ import com.practice.stats_dto.EndpointHit;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Random;
 
 @Component
 public class EndpointHitGenerator {
     Random random = new Random();
 
-    public EndpointHit generate() {
+    public EndpointHit generate(String app, String uri, LocalDateTime timestamp) {
         return EndpointHit.builder()
-                .app("events-service")
-                .uri("/events/1")
+                .app(app)
+                .uri(uri)
                 .ip(generateIp())
-                .timestamp(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .timestamp(timestamp)
                 .build();
     }
 

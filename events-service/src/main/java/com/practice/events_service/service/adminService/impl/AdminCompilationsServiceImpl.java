@@ -58,7 +58,7 @@ public class AdminCompilationsServiceImpl implements AdminCompilationsService {
 
     @Override
     public void deleteCompilation(Long compId) {
-        checkService.compilationExistsCheck(compId);
+        checkService.findCompilation(compId);
 
         compilationRepository.deleteById(compId);
     }

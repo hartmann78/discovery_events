@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -19,7 +20,7 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
             group by app, uri
             """,
             nativeQuery = true)
-    List<ViewStats> getSingleUriStats(String app, String start, String end, String[] uris);
+    List<ViewStats> getSingleUriStats(String app, LocalDateTime start, LocalDateTime end, String[] uris);
 
     @Query(value = """
             select app, uri, count(distinct ip) as hits
@@ -30,7 +31,7 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
             group by app, uri
             """,
             nativeQuery = true)
-    List<ViewStats> getUniqueIpSingleUriStats(String app, String start, String end, String[] uris);
+    List<ViewStats> getUniqueIpSingleUriStats(String app, LocalDateTime start, LocalDateTime end, String[] uris);
 
     @Query(value = """
             select app, uri, count(id) as hits
@@ -40,7 +41,7 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
             group by app, uri
             """,
             nativeQuery = true)
-    List<ViewStats> getAllUriStats(String app, String start, String end);
+    List<ViewStats> getAllUriStats(String app, LocalDateTime start, LocalDateTime end);
 
     @Query(value = """
             select app, uri, count(distinct ip) as hits
@@ -50,7 +51,7 @@ public interface StatsRepository extends JpaRepository<EndpointHit, Long> {
             group by app, uri
             """,
             nativeQuery = true)
-    List<ViewStats> getUniqueIpAllUriStats(String app, String start, String end);
+    List<ViewStats> getUniqueIpAllUriStats(String app, LocalDateTime start, LocalDateTime end);
 
     @Query(value = """
             select exists(select *

@@ -1,6 +1,7 @@
 package com.practice.events_service.service.publicService.impl;
 
 import com.practice.events_service.dto.modelDTO.EventFullDTO;
+import com.practice.events_service.enums.Sort;
 import com.practice.events_service.dto.shortDTO.EventShortDTO;
 import com.practice.events_service.exception.not_found.EventNotFoundException;
 import com.practice.events_service.mapper.EventMapper;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,21 +32,21 @@ public class PublicEventsServiceImpl implements PublicEventsService {
     public List<EventShortDTO> getPublishedEvents(String text,
                                                   Long[] categories,
                                                   Boolean paid,
-                                                  String rangeStart,
-                                                  String rangeEnd,
+                                                  LocalDateTime rangeStart,
+                                                  LocalDateTime rangeEnd,
                                                   Boolean onlyAvailable,
-                                                  String sort,
+                                                  Sort sort,
                                                   int from,
                                                   int size,
                                                   HttpServletRequest request) throws IOException, InterruptedException, URISyntaxException {
         checkService.fromAndSizeCheck(from, size);
         checkService.startAndEndTimeCheck(rangeStart, rangeEnd);
 
-        if (sort != null && !sort.equals("EVENT_DATE") && !sort.equals("VIEWS")) {
-            sort = null;
+        if (sort != Sort.EVENT_DATE && sort != Sort.VIEWS) {
+            sort = Sort.NULL;
         }
 
-        List<Event> events = eventRepository.publicGetPublishedEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size);
+        List<Event> events = eventRepository.publicGetPublishedEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort.toString(), from, size);
         postEndpointHit(null, request);
 
         return eventMapper.eventListToEventShortDTOList(events);

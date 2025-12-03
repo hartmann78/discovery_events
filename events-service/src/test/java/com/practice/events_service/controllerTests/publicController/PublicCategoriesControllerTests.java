@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.practice.events_service.dto.modelDTO.CategoryDTO;
 import com.practice.events_service.dto.newDTO.NewCategoryDTO;
 import com.practice.events_service.generators.CategoryGenerator;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,7 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PublicCategoriesControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -32,12 +28,11 @@ public class PublicCategoriesControllerTests {
     @Autowired
     private CategoryGenerator categoryGenerator;
 
-    private static NewCategoryDTO newCategoryDTO;
-    private static Long categoryId;
+    private NewCategoryDTO newCategoryDTO;
+    private Long categoryId;
 
-    @Test
-    @Order(1)
-    void getCategories() throws Exception {
+    @BeforeEach
+    void postCategory() throws Exception {
         newCategoryDTO = categoryGenerator.generateNewCategoryDTO();
         String newCategoryDTOJson = objectMapper.writeValueAsString(newCategoryDTO);
 
@@ -47,7 +42,10 @@ public class PublicCategoriesControllerTests {
                 .andExpect(status().isCreated());
 
         categoryId = objectMapper.readValue(categoryResult.andReturn().getResponse().getContentAsString(), CategoryDTO.class).getId();
+    }
 
+    @Test
+    void getCategories() throws Exception {
         mockMvc.perform(get("/categories")
                         .param("from", "0")
                         .param("size", "10"))
@@ -56,7 +54,6 @@ public class PublicCategoriesControllerTests {
     }
 
     @Test
-    @Order(2)
     void getCategoryById() throws Exception {
         mockMvc.perform(get("/categories/{catId}", categoryId))
                 .andExpect(status().isOk())

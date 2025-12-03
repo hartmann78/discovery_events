@@ -2,12 +2,14 @@ package com.practice.events_service.dto.eventRequestStatusUpdate;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class EventRequestStatusUpdateRequest {
     @NotEmpty

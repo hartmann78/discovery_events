@@ -17,19 +17,16 @@ import com.practice.events_service.service.adminService.AdminEventsService;
 import com.practice.events_service.service.adminService.AdminUsersService;
 import com.practice.events_service.service.privateService.PrivateEventsService;
 import com.practice.events_service.service.privateService.PrivateRequestsService;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PrivateRequestsServiceTests {
     @Autowired
     private AdminUsersService adminUsersService;
@@ -49,14 +46,14 @@ public class PrivateRequestsServiceTests {
     @Autowired
     private EventGenerator eventGenerator;
 
-    private static UserDTO initiatorDTO;
-    private static UserDTO requesterDTO;
-    private static CategoryDTO categoryDTO;
-    private static EventFullDTO eventFullDTO;
-    private static ParticipationRequestDTO participationRequestDTO;
+    private UserDTO initiatorDTO;
+    private UserDTO requesterDTO;
+    private CategoryDTO categoryDTO;
+    private EventFullDTO eventFullDTO;
+    private ParticipationRequestDTO participationRequestDTO;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void postEventParticipationRequest() {
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
         initiatorDTO = adminUsersService.postNewUser(newUserRequest);
@@ -84,21 +81,19 @@ public class PrivateRequestsServiceTests {
     }
 
     @Test
-    @Order(2)
     void getUserEventRequests() {
         List<ParticipationRequestDTO> requestDTOS = privateRequestsService.getUserEventRequests(requesterDTO.getId());
         assertFalse(requestDTOS.isEmpty());
     }
 
     @Test
-    @Order(3)
     void cancelEventParticipationRequest() {
         ParticipationRequestDTO requestDTO = privateRequestsService.cancelEventParticipationRequest(requesterDTO.getId(), participationRequestDTO.getId());
 
         assertEquals(participationRequestDTO.getId(), requestDTO.getId());
         assertEquals(eventFullDTO.getId(), requestDTO.getEvent());
         assertEquals(requesterDTO.getId(), requestDTO.getRequester());
-        assertEquals(participationRequestDTO.getCreated(), requestDTO.getCreated());
+        assertEquals(participationRequestDTO.getCreated().truncatedTo(ChronoUnit.SECONDS), requestDTO.getCreated().truncatedTo(ChronoUnit.SECONDS));
         assertEquals(ParticipationRequest.Status.CANCELED.toString(), requestDTO.getStatus());
     }
 }

@@ -6,10 +6,12 @@ import com.practice.stats_service.service.StatsService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -25,8 +27,8 @@ public class StatsController {
     }
 
     @GetMapping("/stats")
-    public ResponseEntity<List<ViewStats>> getViewStats(@RequestParam String start,
-                                                        @RequestParam String end,
+    public ResponseEntity<List<ViewStats>> getViewStats(@RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+                                                        @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
                                                         @RequestParam(required = false, defaultValue = "false") Boolean unique,
                                                         @RequestParam(required = false) String[] uris,
                                                         HttpServletRequest request) {

@@ -41,21 +41,21 @@ public class AdminCommentServiceImpl implements AdminCommentsService {
 
     @Override
     public void deleteAllUserComments(Long userId) {
-        checkService.userExistsCheck(userId);
+        checkService.findUser(userId);
 
         commentRepository.deleteAllUserComments(userId);
     }
 
     @Override
     public void deleteAllEventComments(Long eventId) {
-        checkService.eventExistsCheck(eventId);
+        checkService.findEvent(eventId);
 
         commentRepository.deleteAllEventComments(eventId);
     }
 
     @Override
     public void deleteComment(Long commentId) {
-        checkService.commentExistsCheck(commentId);
+        checkService.findComment(commentId);
 
         commentRepository.deleteById(commentId);
     }

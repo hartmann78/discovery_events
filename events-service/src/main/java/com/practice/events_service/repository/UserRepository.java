@@ -22,6 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
             from users
             where cast(?1 as anyarray) is null
                or id in (?1)
+            order by id
             limit ?3 offset ?2
             """,
             nativeQuery = true)

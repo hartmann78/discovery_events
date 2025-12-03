@@ -1,8 +1,10 @@
 package com.practice.events_service.model;
 
+import com.practice.events_service.enums.State;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -27,7 +29,7 @@ public class Event {
     private String annotation;
 
     @Column(name = "event_date")
-    private String eventDate;
+    private LocalDateTime eventDate;
 
     @ManyToOne
     @JoinColumn(name = "initiator_id", referencedColumnName = "id")
@@ -65,16 +67,16 @@ public class Event {
     private Long views;
 
     @Column(name = "created_on")
-    private String createdOn;
+    private LocalDateTime createdOn;
 
     @Column(name = "published_on")
-    private String publishedOn;
+    private LocalDateTime publishedOn;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "state")
     private State state;
 
-    @OneToMany(mappedBy = "event", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "event")
     private List<Comment> comments;
 
     @Column(name = "comments_available")
@@ -82,12 +84,6 @@ public class Event {
 
     @Column(name = "show_comments")
     private Boolean showComments;
-
-    public enum State {
-        PENDING,
-        PUBLISHED,
-        CANCELED
-    }
 
     @Override
     public String toString() {

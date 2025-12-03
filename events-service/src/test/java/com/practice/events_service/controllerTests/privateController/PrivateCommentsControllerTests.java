@@ -10,10 +10,7 @@ import com.practice.events_service.dto.newDTO.NewUserRequest;
 import com.practice.events_service.dto.updateRequest.UpdateCommentRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.generators.*;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PrivateCommentsControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -47,18 +43,18 @@ public class PrivateCommentsControllerTests {
     @Autowired
     private CommentGenerator commentGenerator;
 
-    private static NewUserRequest commentAuthor;
+    private NewUserRequest commentAuthor;
 
-    private static Long initiatorId;
-    private static Long categoryId;
-    private static Long eventId;
+    private Long initiatorId;
+    private Long categoryId;
+    private Long eventId;
 
-    private static Long commentAuthorId;
-    private static Long requestId;
-    private static Long commentId;
+    private Long commentAuthorId;
+    private Long requestId;
+    private Long commentId;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void postComment() throws Exception {
         // Create user
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
@@ -153,7 +149,6 @@ public class PrivateCommentsControllerTests {
     }
 
     @Test
-    @Order(2)
     void updateComment() throws Exception {
         UpdateCommentRequest updateCommentRequest = commentGenerator.generateUpdateCommentRequest();
         String updateCommentRequestJson = objectMapper.writeValueAsString(updateCommentRequest);
@@ -172,7 +167,6 @@ public class PrivateCommentsControllerTests {
     }
 
     @Test
-    @Order(3)
     void deleteComment() throws Exception {
         mockMvc.perform(delete("/users/{userId}/events/{eventId}/comments/{commentId}", initiatorId, eventId, commentId)
                         .header("X-Sharer-Author-Id", commentAuthorId))

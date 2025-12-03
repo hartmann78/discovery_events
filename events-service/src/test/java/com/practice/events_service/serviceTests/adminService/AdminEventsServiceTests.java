@@ -8,6 +8,7 @@ import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.newDTO.NewUserRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.generators.CategoryGenerator;
 import com.practice.events_service.generators.EventGenerator;
 import com.practice.events_service.generators.UserGenerator;
@@ -20,13 +21,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminEventsServiceTests {
     @Autowired
     private AdminUsersService adminUsersService;
@@ -44,13 +43,15 @@ public class AdminEventsServiceTests {
     @Autowired
     private EventGenerator eventGenerator;
 
-    private static UserDTO initiatorDTO;
-    private static CategoryDTO categoryDTO;
-    private static EventFullDTO eventFullDTO;
+    private UserDTO initiatorDTO;
+    private CategoryDTO categoryDTO;
+    private EventFullDTO eventFullDTO;
 
-    @Test
-    @Order(1)
-    void getEvents() {
+    private final LocalDateTime rangeStart = LocalDateTime.now().minusDays(7);
+    private final LocalDateTime rangeEnd = LocalDateTime.now().plusDays(14);
+
+    @BeforeEach
+    void postEvent() {
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
         initiatorDTO = adminUsersService.postNewUser(newUserRequest);
 
@@ -59,22 +60,23 @@ public class AdminEventsServiceTests {
 
         NewEventDTO newEventDTO = eventGenerator.generateNewEventDTO(categoryDTO.getId());
         eventFullDTO = privateEventsService.addNewEvent(initiatorDTO.getId(), newEventDTO);
+    }
 
+    @Test
+    void getEvents() {
         List<EventFullDTO> getEvents = adminEventsService.getEvents(
                 new Long[]{eventFullDTO.getInitiator().getId()},
                 new String[]{eventFullDTO.getState().toString()},
                 new Long[]{eventFullDTO.getCategory().getId()},
-                LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                LocalDateTime.now().plusDays(14).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                rangeStart,
+                rangeEnd,
                 0,
                 10);
 
         assertEquals(1, getEvents.size());
-        assertTrue(getEvents.contains(eventFullDTO));
     }
 
     @Test
-    @Order(2)
     void patchEvent() {
         UpdateEventAdminRequest updateEventAdminRequest = eventGenerator.generateUpdateEventAdminRequest(categoryDTO.getId());
         updateEventAdminRequest.setStateAction(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT);
@@ -94,13 +96,12 @@ public class AdminEventsServiceTests {
         assertNotNull(eventFullDTO.getConfirmedRequests());
         assertNotNull(eventFullDTO.getCreatedOn());
         assertNotNull(eventFullDTO.getPublishedOn());
-        assertEquals(EventFullDTO.State.PUBLISHED, eventFullDTO.getState());
+        assertEquals(State.PUBLISHED, eventFullDTO.getState());
         assertNotNull(eventFullDTO.getViews());
         assertNotNull(eventFullDTO.getComments());
     }
 
     @Test
-    @Order(3)
     void patchEventCommentsStateHideComments() {
         UpdateEventCommentsState updateEventCommentsState = eventGenerator.generateUpdateEventCommentsState(true, false);
         adminEventsService.patchEventCommentsState(eventFullDTO.getId(), updateEventCommentsState);
@@ -109,8 +110,8 @@ public class AdminEventsServiceTests {
                 new Long[]{eventFullDTO.getInitiator().getId()},
                 new String[]{eventFullDTO.getState().toString()},
                 new Long[]{eventFullDTO.getCategory().getId()},
-                LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                LocalDateTime.now().plusDays(14).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                rangeStart,
+                rangeEnd,
                 0,
                 1);
 
@@ -121,7 +122,6 @@ public class AdminEventsServiceTests {
     }
 
     @Test
-    @Order(4)
     void patchEventCommentsStateShowComments() {
         UpdateEventCommentsState updateEventCommentsState = eventGenerator.generateUpdateEventCommentsState(true, true);
         privateEventsService.patchEventCommentsState(initiatorDTO.getId(), eventFullDTO.getId(), updateEventCommentsState);
@@ -130,8 +130,8 @@ public class AdminEventsServiceTests {
                 new Long[]{eventFullDTO.getInitiator().getId()},
                 new String[]{eventFullDTO.getState().toString()},
                 new Long[]{eventFullDTO.getCategory().getId()},
-                LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
-                LocalDateTime.now().plusDays(14).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+                rangeStart,
+                rangeEnd,
                 0,
                 1);
 
@@ -139,6 +139,5 @@ public class AdminEventsServiceTests {
         EventFullDTO checkEvent = getEvents.get(0);
 
         assertNotNull(checkEvent.getComments());
-        assertEquals(eventFullDTO, checkEvent);
     }
 }

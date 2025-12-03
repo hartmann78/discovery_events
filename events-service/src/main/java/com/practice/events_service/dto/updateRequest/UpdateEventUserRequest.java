@@ -1,12 +1,17 @@
 package com.practice.events_service.dto.updateRequest;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.practice.events_service.dto.other.Location;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
-@Data
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class UpdateEventUserRequest {
     @Length(min = 3, max = 120)
@@ -18,7 +23,8 @@ public class UpdateEventUserRequest {
     @Length(min = 20, max = 2000)
     private String annotation;
 
-    private String eventDate;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventDate;
 
     @PositiveOrZero
     private Long category;

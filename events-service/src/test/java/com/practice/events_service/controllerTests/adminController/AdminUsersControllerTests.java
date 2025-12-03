@@ -4,10 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.practice.events_service.dto.modelDTO.UserDTO;
 import com.practice.events_service.generators.UserGenerator;
 import com.practice.events_service.dto.newDTO.NewUserRequest;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -21,7 +18,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminUsersControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -30,10 +26,10 @@ public class AdminUsersControllerTests {
     @Autowired
     private UserGenerator userGenerator;
 
-    private static Long userId;
+    private Long userId;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void postNewUser() throws Exception {
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
         String newUserRequestJson = objectMapper.writeValueAsString(newUserRequest);
@@ -50,7 +46,6 @@ public class AdminUsersControllerTests {
     }
 
     @Test
-    @Order(2)
     void getUsers() throws Exception {
         mockMvc.perform(get("/admin/users")
                         .param("ids", userId.toString())
@@ -61,7 +56,6 @@ public class AdminUsersControllerTests {
     }
 
     @Test
-    @Order(3)
     void deleteUser() throws Exception {
         mockMvc.perform(delete("/admin/users/{userId}", userId))
                 .andExpect(status().isNoContent());

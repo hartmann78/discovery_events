@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class ParticipationRequestRepositoryTests {
     @Autowired
     private UserRepository userRepository;
@@ -48,6 +47,7 @@ public class ParticipationRequestRepositoryTests {
     private User requestor;
     private ParticipationRequest request;
 
+    @Test
     @BeforeEach
     void save() {
         initiator = userGenerator.generateUser();
@@ -67,7 +67,6 @@ public class ParticipationRequestRepositoryTests {
     }
 
     @Test
-    @Order(1)
     void findById() {
         Optional<ParticipationRequest> checkRequest = participationRequestRepository.findById(request.getId());
         assertTrue(checkRequest.isPresent());
@@ -76,28 +75,50 @@ public class ParticipationRequestRepositoryTests {
     }
 
     @Test
-    @Order(2)
+    void findAll() {
+        List<ParticipationRequest> findAllRequests = participationRequestRepository.findAll();
+        assertTrue(findAllRequests.contains(request));
+    }
+
+    @Test
+    void update() {
+        ParticipationRequest updateRequest = participationRequestGenerator.generateParticipationRequest(requestor, event);
+
+        request.setCreated(updateRequest.getCreated());
+        eventRepository.save(event);
+
+        Optional<ParticipationRequest> checkUpdatedRequest = participationRequestRepository.findById(request.getId());
+        assertTrue(checkUpdatedRequest.isPresent());
+        assertEquals(request, checkUpdatedRequest.get());
+    }
+
+    @Test
+    void delete() {
+        participationRequestRepository.deleteById(request.getId());
+
+        Optional<ParticipationRequest> checkRequest = participationRequestRepository.findById(request.getId());
+        assertTrue(checkRequest.isEmpty());
+    }
+
+    @Test
     void getRequesterRequests() {
         List<ParticipationRequest> getRequesterRequests = participationRequestRepository.getRequesterRequests(requestor.getId());
         assertFalse(getRequesterRequests.isEmpty());
     }
 
     @Test
-    @Order(3)
     void getEventInitiatorRequests() {
         List<ParticipationRequest> getEventInitiatorRequests = participationRequestRepository.getEventInitiatorRequests(initiator.getId(), event.getId());
         assertFalse(getEventInitiatorRequests.isEmpty());
     }
 
     @Test
-    @Order(4)
     void checkRequestExists() {
         Boolean checkRequestExists = participationRequestRepository.checkRequestExists(requestor.getId(), event.getId());
         assertTrue(checkRequestExists);
     }
 
     @Test
-    @Order(5)
     void updateRequests() {
         participationRequestRepository.updateRequests(new ArrayList<>(List.of(request.getId())), ParticipationRequest.Status.CONFIRMED.toString());
 
@@ -107,7 +128,6 @@ public class ParticipationRequestRepositoryTests {
     }
 
     @Test
-    @Order(6)
     void getAllConfirmedAndRejectedRequests() {
         participationRequestRepository.updateRequests(new ArrayList<>(List.of(request.getId())), ParticipationRequest.Status.CONFIRMED.toString());
 
@@ -117,7 +137,6 @@ public class ParticipationRequestRepositoryTests {
     }
 
     @Test
-    @Order(7)
     void cancelRequest() {
         Event event2 = eventGenerator.generateEvent(initiator, category);
         eventRepository.save(event2);
@@ -133,31 +152,9 @@ public class ParticipationRequestRepositoryTests {
     }
 
     @Test
-    @Order(8)
-    void findAll() {
-        List<ParticipationRequest> findAllRequests = participationRequestRepository.findAll();
-        assertTrue(findAllRequests.contains(request));
-    }
+    void checkRequestorConfirmed() {
+        participationRequestRepository.updateRequests(new ArrayList<>(List.of(request.getId())), ParticipationRequest.Status.CONFIRMED.toString());
 
-    @Test
-    @Order(9)
-    void update() {
-        ParticipationRequest updateRequest = participationRequestGenerator.generateParticipationRequest(requestor, event);
-
-        request.setCreated(updateRequest.getCreated());
-        eventRepository.save(event);
-
-        Optional<ParticipationRequest> checkUpdatedRequest = participationRequestRepository.findById(request.getId());
-        assertTrue(checkUpdatedRequest.isPresent());
-        assertEquals(request, checkUpdatedRequest.get());
-    }
-
-    @Test
-    @Order(10)
-    void delete() {
-        participationRequestRepository.deleteById(request.getId());
-
-        Optional<ParticipationRequest> checkRequest = participationRequestRepository.findById(request.getId());
-        assertTrue(checkRequest.isEmpty());
+        assertTrue(participationRequestRepository.checkRequestorConfirmed(requestor.getId(), event.getId()));
     }
 }

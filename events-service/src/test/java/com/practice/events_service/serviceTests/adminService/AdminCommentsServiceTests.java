@@ -21,13 +21,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminCommentsServiceTests {
     @Autowired
     private AdminUsersService adminUsersService;
@@ -55,18 +54,15 @@ public class AdminCommentsServiceTests {
     @Autowired
     private CommentGenerator commentGenerator;
 
-    private static UserDTO initiatorDTO;
-    private static UserDTO commentAuthorDTO;
-    private static CategoryDTO categoryDTO;
-    private static EventFullDTO eventFullDTO;
-    private static ParticipationRequestDTO participationRequestDTO;
-    private static CommentDTO commentDTO1;
-    private static CommentDTO commentDTO2;
-    private static CommentDTO commentDTO3;
+    private UserDTO initiatorDTO;
+    private UserDTO commentAuthorDTO;
+    private CategoryDTO categoryDTO;
+    private EventFullDTO eventFullDTO;
+    private ParticipationRequestDTO participationRequestDTO;
+    private CommentDTO commentDTO1;
 
-    @Test
-    @Order(1)
-    void getAllUserComments() {
+    @BeforeEach
+    void postComments() {
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
         initiatorDTO = adminUsersService.postNewUser(newUserRequest);
 
@@ -74,7 +70,7 @@ public class AdminCommentsServiceTests {
         categoryDTO = adminCategoriesService.addNewCategory(newCategoryDTO);
 
         NewEventDTO newEventDTO = eventGenerator.generateNewEventDTO(categoryDTO.getId());
-        newEventDTO.setEventDate(LocalDateTime.now().plusHours(3).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        newEventDTO.setEventDate(LocalDateTime.now().plusHours(3));
         eventFullDTO = privateEventsService.addNewEvent(initiatorDTO.getId(), newEventDTO);
 
         UpdateEventAdminRequest updateEventAdminRequest = eventGenerator.generateUpdateEventAdminRequest(categoryDTO.getId());
@@ -96,29 +92,34 @@ public class AdminCommentsServiceTests {
 
         // Second comment
         NewCommentDTO newCommentDTO2 = commentGenerator.generateNewCommentDTO();
-        commentDTO2 = privateCommentsService.postComment(commentAuthorDTO.getId(), eventFullDTO.getId(), newCommentDTO2);
+        privateCommentsService.postComment(commentAuthorDTO.getId(), eventFullDTO.getId(), newCommentDTO2);
+    }
 
+    @Test
+    void getAllUserComments() {
         List<CommentDTO> getAllUserComments = adminCommentsService.getAllUserComments(commentAuthorDTO.getId(), 0, 10);
         assertEquals(2, getAllUserComments.size());
     }
 
     @Test
-    @Order(2)
     void getAllEventComments() {
         List<CommentDTO> getAllEventComments = adminCommentsService.getAllEventComments(eventFullDTO.getId(), 0, 10);
         assertEquals(2, getAllEventComments.size());
     }
 
     @Test
-    @Order(3)
     void findCommentById() {
         CommentDTO findComment = adminCommentsService.findCommentById(commentDTO1.getId());
 
-        assertEquals(commentDTO1, findComment);
+        assertEquals(commentDTO1.getId(), findComment.getId());
+        assertEquals(commentDTO1.getText(), findComment.getText());
+        assertEquals(commentDTO1.getAuthorName(), findComment.getAuthorName());
+        assertEquals(commentDTO1.getFromEventInitiator(), findComment.getFromEventInitiator());
+        assertEquals(commentDTO1.getCreatedOn().truncatedTo(ChronoUnit.SECONDS), findComment.getCreatedOn().truncatedTo(ChronoUnit.SECONDS));
+        assertEquals(commentDTO1.getUpdatedOn(), findComment.getUpdatedOn());
     }
 
     @Test
-    @Order(4)
     void deleteComment() {
         adminCommentsService.deleteComment(commentDTO1.getId());
 
@@ -126,21 +127,18 @@ public class AdminCommentsServiceTests {
     }
 
     @Test
-    @Order(5)
     void deleteAllUserComments() {
         adminCommentsService.deleteAllUserComments(commentAuthorDTO.getId());
 
         List<CommentDTO> getAllUserComments = adminCommentsService.getAllUserComments(commentAuthorDTO.getId(), 0, 10);
         assertTrue(getAllUserComments.isEmpty());
-
     }
 
     @Test
-    @Order(6)
     void deleteAllEventComments() {
         // Third comment
         NewCommentDTO newCommentDTO3 = commentGenerator.generateNewCommentDTO();
-        commentDTO3 = privateCommentsService.postComment(commentAuthorDTO.getId(), eventFullDTO.getId(), newCommentDTO3);
+        privateCommentsService.postComment(commentAuthorDTO.getId(), eventFullDTO.getId(), newCommentDTO3);
 
         adminCommentsService.deleteAllEventComments(eventFullDTO.getId());
 

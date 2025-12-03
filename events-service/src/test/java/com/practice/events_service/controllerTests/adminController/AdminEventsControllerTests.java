@@ -9,13 +9,11 @@ import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.newDTO.NewUserRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.generators.CategoryGenerator;
 import com.practice.events_service.generators.EventGenerator;
 import com.practice.events_service.generators.UserGenerator;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,7 +30,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminEventsControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -46,17 +43,18 @@ public class AdminEventsControllerTests {
     @Autowired
     private EventGenerator eventGenerator;
 
-    private static NewUserRequest newUserRequest;
-    private static NewCategoryDTO newCategoryDTO;
-    private static NewEventDTO newEventDTO;
+    private NewUserRequest newUserRequest;
+    private NewCategoryDTO newCategoryDTO;
+    private NewEventDTO newEventDTO;
 
-    private static Long initiatorId;
-    private static Long categoryId;
-    private static Long eventId;
+    private Long initiatorId;
+    private Long categoryId;
+    private Long eventId;
 
-    @Test
-    @Order(1)
-    void getEvents() throws Exception {
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    @BeforeEach
+    void postEvent() throws Exception {
         // Create user
         newUserRequest = userGenerator.generateNewUserRequest();
         String newUserRequestJson = objectMapper.writeValueAsString(newUserRequest);
@@ -89,14 +87,17 @@ public class AdminEventsControllerTests {
                 .andExpect(status().isCreated());
 
         eventId = objectMapper.readValue(eventResult.andReturn().getResponse().getContentAsString(), EventFullDTO.class).getId();
+    }
 
+    @Test
+    void getEvents() throws Exception {
         // Get events
         mockMvc.perform(get("/admin/events")
                         .param("users", initiatorId.toString())
                         .param("states", "PENDING")
                         .param("categories", categoryId.toString())
-                        .param("rangeStart", LocalDateTime.now().minusDays(7).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
-                        .param("rangeEnd", LocalDateTime.now().plusDays(14).format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                        .param("rangeStart", LocalDateTime.now().minusDays(7).format(dateTimeFormatter))
+                        .param("rangeEnd", LocalDateTime.now().plusDays(14).format(dateTimeFormatter))
                         .param("from", "0")
                         .param("size", "1000"))
                 .andExpect(status().isOk())
@@ -104,7 +105,7 @@ public class AdminEventsControllerTests {
                 .andExpect(jsonPath("$[0].title").value(newEventDTO.getTitle()))
                 .andExpect(jsonPath("$[0].description").value(newEventDTO.getDescription()))
                 .andExpect(jsonPath("$[0].annotation").value(newEventDTO.getAnnotation()))
-                .andExpect(jsonPath("$[0].eventDate").value(newEventDTO.getEventDate()))
+                .andExpect(jsonPath("$[0].eventDate").value(newEventDTO.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$[0].initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$[0].initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$[0].category.id").value(categoryId))
@@ -117,13 +118,12 @@ public class AdminEventsControllerTests {
                 .andExpect(jsonPath("$[0].confirmedRequests").exists())
                 .andExpect(jsonPath("$[0].createdOn").exists())
                 .andExpect(jsonPath("$[0].publishedOn").doesNotExist())
-                .andExpect(jsonPath("$[0].state").value(EventFullDTO.State.PENDING.toString()))
+                .andExpect(jsonPath("$[0].state").value(State.PENDING.toString()))
                 .andExpect(jsonPath("$[0].views").exists())
                 .andExpect(jsonPath("$[0].comments").exists());
     }
 
     @Test
-    @Order(2)
     void patchEvent() throws Exception {
         UpdateEventAdminRequest updateEventAdminRequest = eventGenerator.generateUpdateEventAdminRequest(newEventDTO.getCategory());
         updateEventAdminRequest.setStateAction(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT);
@@ -138,7 +138,7 @@ public class AdminEventsControllerTests {
                 .andExpect(jsonPath("$.title").value(updateEventAdminRequest.getTitle()))
                 .andExpect(jsonPath("$.description").value(updateEventAdminRequest.getDescription()))
                 .andExpect(jsonPath("$.annotation").value(updateEventAdminRequest.getAnnotation()))
-                .andExpect(jsonPath("$.eventDate").value(updateEventAdminRequest.getEventDate()))
+                .andExpect(jsonPath("$.eventDate").value(updateEventAdminRequest.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$.initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$.initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$.category.id").value(categoryId))
@@ -151,13 +151,12 @@ public class AdminEventsControllerTests {
                 .andExpect(jsonPath("$.confirmedRequests").exists())
                 .andExpect(jsonPath("$.createdOn").exists())
                 .andExpect(jsonPath("$.publishedOn").exists())
-                .andExpect(jsonPath("$.state").value(EventFullDTO.State.PUBLISHED.toString()))
+                .andExpect(jsonPath("$.state").value(State.PUBLISHED.toString()))
                 .andExpect(jsonPath("$.views").exists())
                 .andExpect(jsonPath("$.comments").exists());
     }
 
     @Test
-    @Order(3)
     void patchEventCommentsStateHideComments() throws Exception {
         // To the first event (Published)
         UpdateEventCommentsState updateEventCommentsState = eventGenerator.generateUpdateEventCommentsState(true, false);
@@ -171,7 +170,6 @@ public class AdminEventsControllerTests {
     }
 
     @Test
-    @Order(4)
     void patchEventCommentsStateShowComments() throws Exception {
         // To the first event (Published)
         UpdateEventCommentsState updateEventCommentsState = eventGenerator.generateUpdateEventCommentsState(true, true);

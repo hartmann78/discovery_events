@@ -1,13 +1,15 @@
 package com.practice.events_service.dto.newDTO;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
 import java.util.List;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class NewCompilationDTO {
     @NotBlank
@@ -15,6 +17,5 @@ public class NewCompilationDTO {
     private String title;
 
     private Boolean pinned;
-
     private List<Long> events;
 }

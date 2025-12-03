@@ -9,7 +9,6 @@ import com.practice.events_service.model.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +20,7 @@ public class CommentMapper {
                 .fromEventInitiator(event.getInitiator().equals(author))
                 .author(author)
                 .event(event)
-                .createdOn(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .createdOn(LocalDateTime.now())
                 .build();
     }
 
@@ -48,7 +47,7 @@ public class CommentMapper {
 
     public Comment patchCommentByUpdateCommentRequest(Comment comment, UpdateCommentRequest updateCommentRequest) {
         comment.setText(updateCommentRequest.getText());
-        comment.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        comment.setUpdatedOn(LocalDateTime.now());
 
         return comment;
     }

@@ -9,43 +9,38 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class StatsRepositoryTests {
     @Autowired
     private StatsRepository statsRepository;
 
     private final EndpointHitGenerator endpointHitGenerator = new EndpointHitGenerator();
-    private EndpointHit endpointHit;
-    private static final String app = "events-service";
-    private static final String uri = "/events/1";
-    private static final String startRange = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).minusDays(1).toString();
-    private static final String endRange = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).plusDays(1).toString();
 
-    @BeforeEach
-    void create() {
-        endpointHit = endpointHitGenerator.generate();
-        statsRepository.save(endpointHit);
-    }
+    private EndpointHit endpointHit;
+    private final String app = "events-service";
+    private final String uri = "/events/1";
+    private final LocalDateTime eventDate = LocalDateTime.now();
+    private final LocalDateTime startRange = eventDate.minusDays(1);
+    private final LocalDateTime endRange = eventDate.plusDays(1);
 
     @Test
-    @Order(1)
+    @BeforeEach
     void post() {
-        assertNotNull(endpointHit.getId());
+        endpointHit = endpointHitGenerator.generate(app, uri, eventDate);
+        statsRepository.save(endpointHit);
 
         Optional<EndpointHit> check = statsRepository.findById(endpointHit.getId());
         assertTrue(check.isPresent());
+        assertNotNull(check.get().getId());
         assertEquals(endpointHit, check.get());
     }
 
     @Test
-    @Order(2)
     void getSingleUriStats() {
         List<ViewStats> viewStats = statsRepository.getSingleUriStats(app, startRange, endRange, new String[]{uri});
 
@@ -53,9 +48,8 @@ public class StatsRepositoryTests {
     }
 
     @Test
-    @Order(3)
     void getUniqueIpSingleUriStats() {
-        EndpointHit endpointHit2 = endpointHitGenerator.generate();
+        EndpointHit endpointHit2 = endpointHitGenerator.generate(app, uri, eventDate);
         statsRepository.save(endpointHit2);
 
         List<ViewStats> viewStats = statsRepository.getUniqueIpSingleUriStats(app, startRange, endRange, new String[]{uri});
@@ -65,9 +59,8 @@ public class StatsRepositoryTests {
     }
 
     @Test
-    @Order(4)
     void getAllUriStats() {
-        EndpointHit endpointHit2 = endpointHitGenerator.generate();
+        EndpointHit endpointHit2 = endpointHitGenerator.generate(app, uri, eventDate);
         endpointHit2.setUri("/events/2");
         statsRepository.save(endpointHit2);
 
@@ -76,9 +69,8 @@ public class StatsRepositoryTests {
     }
 
     @Test
-    @Order(5)
     void getUniqueIpAllUriStats() {
-        EndpointHit endpointHit2 = endpointHitGenerator.generate();
+        EndpointHit endpointHit2 = endpointHitGenerator.generate(app, uri, eventDate);
         endpointHit2.setUri("/events/2");
         statsRepository.save(endpointHit2);
 
@@ -87,7 +79,6 @@ public class StatsRepositoryTests {
     }
 
     @Test
-    @Order(6)
     void checkIpExistsByUri() {
         String uri = endpointHit.getUri();
         String ip = endpointHit.getIp();
@@ -96,7 +87,6 @@ public class StatsRepositoryTests {
     }
 
     @Test
-    @Order(7)
     void deleteEndpoint() {
         statsRepository.deleteById(endpointHit.getId());
 

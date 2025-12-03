@@ -5,10 +5,7 @@ import com.practice.events_service.dto.modelDTO.CompilationDTO;
 import com.practice.events_service.dto.newDTO.NewCompilationDTO;
 import com.practice.events_service.dto.updateRequest.UpdateCompilationRequest;
 import com.practice.events_service.generators.CompilationGenerator;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,20 +21,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminCompilationsControllerTests {
     @Autowired
     private MockMvc mockMvc;
     @Autowired
     private ObjectMapper objectMapper;
-
     @Autowired
     private CompilationGenerator compilationGenerator;
 
-    private static Long compilationId;
+    private Long compilationId;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void postNewCompilation() throws Exception {
         NewCompilationDTO newCompilationDTO = compilationGenerator.generateNewCompilationDTO(Collections.emptyList());
         String newCompilationDTOJson = objectMapper.writeValueAsString(newCompilationDTO);
@@ -55,7 +50,6 @@ public class AdminCompilationsControllerTests {
     }
 
     @Test
-    @Order(2)
     void patchCompilation() throws Exception {
         UpdateCompilationRequest updateCompilation = compilationGenerator.generateUpdateCompilationRequest(Collections.emptyList());
         String updateCompilationJson = objectMapper.writeValueAsString(updateCompilation);
@@ -71,7 +65,6 @@ public class AdminCompilationsControllerTests {
     }
 
     @Test
-    @Order(3)
     void deleteCompilation() throws Exception {
         mockMvc.perform(delete("/admin/compilations/{compId}", compilationId))
                 .andExpect(status().isNoContent());

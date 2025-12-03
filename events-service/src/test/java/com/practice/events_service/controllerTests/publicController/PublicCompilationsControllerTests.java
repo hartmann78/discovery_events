@@ -13,10 +13,7 @@ import com.practice.events_service.generators.CategoryGenerator;
 import com.practice.events_service.generators.CompilationGenerator;
 import com.practice.events_service.generators.EventGenerator;
 import com.practice.events_service.generators.UserGenerator;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -33,7 +31,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PublicCompilationsControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -49,19 +46,20 @@ public class PublicCompilationsControllerTests {
     @Autowired
     private CompilationGenerator compilationGenerator;
 
-    private static NewUserRequest newUserRequest;
-    private static NewCategoryDTO newCategoryDTO;
-    private static NewEventDTO newEventDTO;
-    private static NewCompilationDTO newCompilationDTO;
+    private NewUserRequest newUserRequest;
+    private NewCategoryDTO newCategoryDTO;
+    private NewEventDTO newEventDTO;
+    private NewCompilationDTO newCompilationDTO;
 
-    private static Long initiatorId;
-    private static Long categoryId;
-    private static Long eventId;
-    private static Long compilationId;
+    private Long initiatorId;
+    private Long categoryId;
+    private Long eventId;
+    private Long compilationId;
 
-    @Test
-    @Order(1)
-    void getCompilations() throws Exception {
+    private final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    @BeforeEach
+    void postCompilation() throws Exception {
         // Create user
         newUserRequest = userGenerator.generateNewUserRequest();
         String newUserRequestJson = objectMapper.writeValueAsString(newUserRequest);
@@ -106,6 +104,10 @@ public class PublicCompilationsControllerTests {
 
         compilationId = objectMapper.readValue(compilationResult.andReturn().getResponse().getContentAsString(), CompilationDTO.class).getId();
 
+    }
+
+    @Test
+    void getCompilations() throws Exception {
         mockMvc.perform(get("/compilations")
                         .param("pinned", newCompilationDTO.getPinned().toString())
                         .param("from", "0")
@@ -115,7 +117,6 @@ public class PublicCompilationsControllerTests {
     }
 
     @Test
-    @Order(2)
     void getCompilationsById() throws Exception {
         mockMvc.perform(get("/compilations/{compId}", compilationId))
                 .andExpect(status().isOk())
@@ -125,7 +126,7 @@ public class PublicCompilationsControllerTests {
                 .andExpect(jsonPath("$.events.[0].id").value(eventId))
                 .andExpect(jsonPath("$.events.[0].title").value(newEventDTO.getTitle()))
                 .andExpect(jsonPath("$.events.[0].annotation").value(newEventDTO.getAnnotation()))
-                .andExpect(jsonPath("$.events.[0].eventDate").value(newEventDTO.getEventDate()))
+                .andExpect(jsonPath("$.events.[0].eventDate").value(newEventDTO.getEventDate().format(dateTimeFormatter)))
                 .andExpect(jsonPath("$.events.[0].initiator.id").value(initiatorId))
                 .andExpect(jsonPath("$.events.[0].initiator.name").value(newUserRequest.getName()))
                 .andExpect(jsonPath("$.events.[0].category.id").value(categoryId))

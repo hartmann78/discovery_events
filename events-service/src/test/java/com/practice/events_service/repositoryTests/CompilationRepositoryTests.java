@@ -15,7 +15,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CompilationRepositoryTests {
     @Autowired
     private CompilationRepository compilationRepository;
@@ -24,6 +23,7 @@ public class CompilationRepositoryTests {
 
     private Compilation compilation;
 
+    @Test
     @BeforeEach
     void save() {
         compilation = compilationGenerator.generateCompilation();
@@ -31,7 +31,6 @@ public class CompilationRepositoryTests {
     }
 
     @Test
-    @Order(1)
     void findById() {
         Optional<Compilation> checkCompilation = compilationRepository.findById(compilation.getId());
         assertTrue(checkCompilation.isPresent());
@@ -40,21 +39,18 @@ public class CompilationRepositoryTests {
     }
 
     @Test
-    @Order(2)
     void getCompilations() {
         List<Compilation> getCompilations = compilationRepository.getCompilations(compilation.getPinned(), 0, 10);
         assertFalse(getCompilations.isEmpty());
     }
 
     @Test
-    @Order(3)
     void findAll() {
         List<Compilation> findAllCompilations = compilationRepository.findAll();
         assertTrue(findAllCompilations.contains(compilation));
     }
 
     @Test
-    @Order(4)
     void update() {
         Compilation updateCompilation = compilationGenerator.generateCompilation();
 
@@ -71,7 +67,6 @@ public class CompilationRepositoryTests {
     }
 
     @Test
-    @Order(5)
     void delete() {
         compilationRepository.deleteById(compilation.getId());
 

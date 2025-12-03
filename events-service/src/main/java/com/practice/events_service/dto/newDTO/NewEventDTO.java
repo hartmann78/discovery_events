@@ -1,14 +1,19 @@
 package com.practice.events_service.dto.newDTO;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.practice.events_service.dto.other.Location;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 import org.hibernate.validator.constraints.Length;
 
-@Data
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class NewEventDTO {
     @NotBlank
@@ -23,8 +28,9 @@ public class NewEventDTO {
     @Length(min = 20, max = 2000)
     private String annotation;
 
-    @NotBlank
-    private String eventDate;
+    @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventDate;
 
     @NotNull
     @PositiveOrZero

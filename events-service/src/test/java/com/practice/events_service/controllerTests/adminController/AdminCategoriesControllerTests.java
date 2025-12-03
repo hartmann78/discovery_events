@@ -5,10 +5,7 @@ import com.practice.events_service.dto.modelDTO.CategoryDTO;
 import com.practice.events_service.dto.newDTO.NewCategoryDTO;
 import com.practice.events_service.dto.updateRequest.UpdateCategoryRequest;
 import com.practice.events_service.generators.CategoryGenerator;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,7 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminCategoriesControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -31,10 +27,10 @@ public class AdminCategoriesControllerTests {
     @Autowired
     private CategoryGenerator categoryGenerator;
 
-    private static Long categoryId;
+    private Long categoryId;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void addNewCategory() throws Exception {
         NewCategoryDTO newCategoryDTO = categoryGenerator.generateNewCategoryDTO();
         String newCategoryDTOJson = objectMapper.writeValueAsString(newCategoryDTO);
@@ -50,7 +46,6 @@ public class AdminCategoriesControllerTests {
     }
 
     @Test
-    @Order(2)
     void patchCategory() throws Exception {
         UpdateCategoryRequest updateCategoryRequest = categoryGenerator.generateUpdateCategoryRequest();
         String patchCategoryJson = objectMapper.writeValueAsString(updateCategoryRequest);
@@ -65,7 +60,6 @@ public class AdminCategoriesControllerTests {
     }
 
     @Test
-    @Order(3)
     void deleteCategory() throws Exception {
         mockMvc.perform(delete("/admin/categories/{catId}", categoryId))
                 .andExpect(status().isNoContent());

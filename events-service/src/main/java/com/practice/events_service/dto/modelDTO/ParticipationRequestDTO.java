@@ -1,18 +1,21 @@
 package com.practice.events_service.dto.modelDTO;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
 
-@Data
-@Builder
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ParticipationRequestDTO {
     private Long id;
     private Long requester;
     private Long event;
-    private String created;
     private String status;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime created;
 }

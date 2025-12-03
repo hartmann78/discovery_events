@@ -1,17 +1,8 @@
 package com.practice.events_service.repositoryTests;
 
-import com.practice.events_service.generators.CategoryGenerator;
-import com.practice.events_service.generators.EventGenerator;
-import com.practice.events_service.generators.ParticipationRequestGenerator;
-import com.practice.events_service.generators.UserGenerator;
-import com.practice.events_service.model.Category;
-import com.practice.events_service.model.Event;
-import com.practice.events_service.model.ParticipationRequest;
-import com.practice.events_service.model.User;
-import com.practice.events_service.repository.CategoryRepository;
-import com.practice.events_service.repository.EventRepository;
-import com.practice.events_service.repository.ParticipationRequestRepository;
-import com.practice.events_service.repository.UserRepository;
+import com.practice.events_service.generators.*;
+import com.practice.events_service.model.*;
+import com.practice.events_service.repository.*;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -23,7 +14,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EventRepositoryTests {
     @Autowired
     private UserRepository userRepository;
@@ -33,11 +23,14 @@ public class EventRepositoryTests {
     private EventRepository eventRepository;
     @Autowired
     private ParticipationRequestRepository participationRequestRepository;
+    @Autowired
+    private CommentRepository commentRepository;
 
     private final UserGenerator userGenerator = new UserGenerator();
     private final CategoryGenerator categoryGenerator = new CategoryGenerator();
     private final EventGenerator eventGenerator = new EventGenerator();
     private final ParticipationRequestGenerator participationRequestGenerator = new ParticipationRequestGenerator();
+    private final CommentGenerator commentGenerator = new CommentGenerator();
 
     private User initiator;
     private Category category;
@@ -46,6 +39,7 @@ public class EventRepositoryTests {
     private User requestor;
     private ParticipationRequest request;
 
+    @Test
     @BeforeEach
     void save() {
         initiator = userGenerator.generateUser();
@@ -65,7 +59,6 @@ public class EventRepositoryTests {
     }
 
     @Test
-    @Order(1)
     void findById() {
         Optional<Event> checkEvent = eventRepository.findById(event.getId());
         assertTrue(checkEvent.isPresent());
@@ -74,74 +67,12 @@ public class EventRepositoryTests {
     }
 
     @Test
-    @Order(2)
-    void getEventByInitiatorId() {
-        Optional<Event> getEventByInitiatorId = eventRepository.getEventByInitiatorId(initiator.getId(), event.getId());
-        assertTrue(getEventByInitiatorId.isPresent());
-        assertEquals(event, getEventByInitiatorId.get());
-    }
-
-    @Test
-    @Order(3)
-    void getInitiatorEvents() {
-        List<Event> getInitiatorEvents = eventRepository.getInitiatorEvents(initiator.getId(), 0, 10);
-        assertFalse(getInitiatorEvents.isEmpty());
-    }
-
-    @Test
-    @Order(4)
-    void getPublishedEventById() {
-        Optional<Event> getPublishedEventById = eventRepository.getPublishedEventById(event.getId());
-        assertTrue(getPublishedEventById.isPresent());
-        assertEquals(event, getPublishedEventById.get());
-    }
-
-    @Test
-    @Order(5)
-    void incrementEventViews() {
-        assertDoesNotThrow(() -> eventRepository.incrementEventViews(event.getId()));
-
-        Optional<Event> checkEvent = eventRepository.findById(event.getId());
-        assertTrue(checkEvent.isPresent());
-        assertEquals(1, checkEvent.get().getViews());
-    }
-
-    @Test
-    @Order(6)
-    void getAvailableRequestsCount() {
-        Long getAvailableRequestsCount = eventRepository.getAvailableRequestsCount(event.getId());
-        assertEquals(event.getParticipantLimit() - event.getConfirmedRequests(), getAvailableRequestsCount);
-    }
-
-    @Test
-    @Order(7)
-    void eventContainsConfirmedRequests() {
-        participationRequestRepository.updateRequests(new ArrayList<>(List.of(request.getId())), ParticipationRequest.Status.CONFIRMED.toString());
-
-        Boolean eventContainsConfirmedRequests = eventRepository.eventContainsConfirmedRequests(event.getId());
-        assertTrue(eventContainsConfirmedRequests);
-    }
-
-    @Test
-    @Order(8)
-    void updateConfirmedRequestsCount() {
-        participationRequestRepository.updateRequests(new ArrayList<>(List.of(request.getId())), ParticipationRequest.Status.CONFIRMED.toString());
-        eventRepository.updateConfirmedRequestsCount(event.getId());
-
-        Optional<Event> checkEvent = eventRepository.findById(event.getId());
-        assertTrue(checkEvent.isPresent());
-        assertEquals(1, checkEvent.get().getConfirmedRequests());
-    }
-
-    @Test
-    @Order(9)
     void findAll() {
         List<Event> findAllEvents = eventRepository.findAll();
         assertTrue(findAllEvents.contains(event));
     }
 
     @Test
-    @Order(10)
     void update() {
         Event updateEvent = eventGenerator.generateEvent(event.getInitiator(), event.getCategory());
         event.setTitle(updateEvent.getTitle());
@@ -171,11 +102,75 @@ public class EventRepositoryTests {
     }
 
     @Test
-    @Order(11)
     void delete() {
         eventRepository.deleteById(event.getId());
 
         Optional<Event> checkEvent = eventRepository.findById(event.getId());
         assertTrue(checkEvent.isEmpty());
+    }
+
+    @Test
+    void getEventByInitiatorId() {
+        Optional<Event> getEventByInitiatorId = eventRepository.getEventByInitiatorId(initiator.getId(), event.getId());
+        assertTrue(getEventByInitiatorId.isPresent());
+        assertEquals(event, getEventByInitiatorId.get());
+    }
+
+    @Test
+    void getInitiatorEvents() {
+        List<Event> getInitiatorEvents = eventRepository.getInitiatorEvents(initiator.getId(), 0, 10);
+        assertFalse(getInitiatorEvents.isEmpty());
+    }
+
+    @Test
+    void getPublishedEventById() {
+        Optional<Event> getPublishedEventById = eventRepository.getPublishedEventById(event.getId());
+        assertTrue(getPublishedEventById.isPresent());
+        assertEquals(event, getPublishedEventById.get());
+    }
+
+    @Test
+    void incrementEventViews() {
+        assertDoesNotThrow(() -> eventRepository.incrementEventViews(event.getId()));
+
+        Optional<Event> checkEvent = eventRepository.findById(event.getId());
+        assertTrue(checkEvent.isPresent());
+        assertEquals(1, checkEvent.get().getViews());
+    }
+
+    @Test
+    void getAvailableRequestsCount() {
+        Long getAvailableRequestsCount = eventRepository.getAvailableRequestsCount(event.getId());
+        assertEquals(event.getParticipantLimit() - event.getConfirmedRequests(), getAvailableRequestsCount);
+    }
+
+    @Test
+    void eventContainsConfirmedRequests() {
+        participationRequestRepository.updateRequests(new ArrayList<>(List.of(request.getId())), ParticipationRequest.Status.CONFIRMED.toString());
+
+        Boolean eventContainsConfirmedRequests = eventRepository.eventContainsConfirmedRequests(event.getId());
+        assertTrue(eventContainsConfirmedRequests);
+    }
+
+    @Test
+    void updateConfirmedRequestsCount() {
+        participationRequestRepository.updateRequests(new ArrayList<>(List.of(request.getId())), ParticipationRequest.Status.CONFIRMED.toString());
+        eventRepository.updateConfirmedRequestsCount(event.getId());
+
+        Optional<Event> checkEvent = eventRepository.findById(event.getId());
+        assertTrue(checkEvent.isPresent());
+        assertEquals(1, checkEvent.get().getConfirmedRequests());
+    }
+
+    @Test
+    void getEventComments() {
+        Comment comment1 = commentGenerator.generateComment(requestor, event);
+        commentRepository.save(comment1);
+
+        Comment comment2 = commentGenerator.generateComment(requestor, event);
+        commentRepository.save(comment2);
+
+        List<Comment> comments = eventRepository.getEventComments(event.getId());
+        assertEquals(2, comments.size());
     }
 }

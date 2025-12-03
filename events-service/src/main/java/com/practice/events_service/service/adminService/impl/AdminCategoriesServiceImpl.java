@@ -49,7 +49,7 @@ public class AdminCategoriesServiceImpl implements AdminCategoriesService {
 
     @Override
     public void deleteCategory(Long catId) {
-        checkService.categoryExistsCheck(catId);
+        checkService.findCategory(catId);
 
         if (categoryRepository.checkCategoryIsAttachedToEvents(catId)) {
             throw new CategoryAttachedToEventsException("Данная категория привязана к существующим событиям!");

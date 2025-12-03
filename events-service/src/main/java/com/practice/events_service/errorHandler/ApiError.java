@@ -1,10 +1,10 @@
 package com.practice.events_service.errorHandler;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -14,14 +14,17 @@ public class ApiError {
     private final String reason;
     private final String message;
     private final String status;
-    private final String timestamp;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private final LocalDateTime timestamp;
+
     private final List<String> errors;
 
     public ApiError(String reason, String message, int code, StackTraceElement[] errors) {
         this.reason = reason;
         this.message = message;
         this.status = ApiError.HttpStatus.getStatusFromCode(code);
-        this.timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        this.timestamp = LocalDateTime.now();
         this.errors = Arrays.stream(errors).map(StackTraceElement::toString).toList();
     }
 

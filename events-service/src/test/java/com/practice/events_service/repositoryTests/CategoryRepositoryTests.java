@@ -13,7 +13,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CategoryRepositoryTests {
     @Autowired
     private CategoryRepository categoryRepository;
@@ -22,6 +21,7 @@ public class CategoryRepositoryTests {
 
     private Category category;
 
+    @Test
     @BeforeEach
     void save() {
         category = categoryGenerator.generateCategory();
@@ -29,7 +29,6 @@ public class CategoryRepositoryTests {
     }
 
     @Test
-    @Order(1)
     void findById() {
         Optional<Category> checkCategory = categoryRepository.findById(category.getId());
         assertTrue(checkCategory.isPresent());
@@ -38,27 +37,12 @@ public class CategoryRepositoryTests {
     }
 
     @Test
-    @Order(2)
-    void checkCategoryNameExists() {
-        Boolean check = categoryRepository.checkCategoryNameExists(category.getName());
-        assertTrue(check);
-    }
-
-    @Test
-    @Order(3)
-    void checkCategoryIsAttachedToEvents() {
-        assertFalse(categoryRepository.checkCategoryIsAttachedToEvents(category.getId()));
-    }
-
-    @Test
-    @Order(4)
     void findAll() {
         List<Category> findAllCategories = categoryRepository.findAll();
         assertTrue(findAllCategories.contains(category));
     }
 
     @Test
-    @Order(5)
     void update() {
         Category updateCategory = categoryGenerator.generateCategory();
 
@@ -72,11 +56,21 @@ public class CategoryRepositoryTests {
     }
 
     @Test
-    @Order(6)
     void delete() {
         categoryRepository.deleteById(category.getId());
 
         Optional<Category> checkCategory = categoryRepository.findById(category.getId());
         assertTrue(checkCategory.isEmpty());
+    }
+
+    @Test
+    void checkCategoryNameExists() {
+        Boolean check = categoryRepository.checkCategoryNameExists(category.getName());
+        assertTrue(check);
+    }
+
+    @Test
+    void checkCategoryIsAttachedToEvents() {
+        assertFalse(categoryRepository.checkCategoryIsAttachedToEvents(category.getId()));
     }
 }

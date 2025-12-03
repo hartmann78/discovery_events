@@ -7,15 +7,16 @@ import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
 import com.practice.events_service.dto.updateRequest.UpdateEventUserRequest;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.model.Category;
 import com.practice.events_service.model.Event;
 import com.practice.events_service.dto.other.Location;
 import com.practice.events_service.model.User;
+import com.practice.events_service.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class EventMapper {
     private final UserMapper userMapper;
     private final CategoryMapper categoryMapper;
     private final CommentMapper commentMapper;
+    private final EventRepository eventRepository;
 
     public Event createNewEvent(NewEventDTO newEventDTO, Category category, User initiator) {
         int participantLimit;
@@ -77,9 +79,9 @@ public class EventMapper {
                 .requestModeration(requestModeration)
                 .confirmedRequests(0L)
                 .views(0L)
-                .createdOn(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .createdOn(LocalDateTime.now())
                 .publishedOn(null)
-                .state(Event.State.PENDING)
+                .state(State.PENDING)
                 .comments(new ArrayList<>())
                 .commentsAvailable(commentsAvailable)
                 .showComments(showComments)
@@ -90,7 +92,7 @@ public class EventMapper {
         List<CommentDTO> comments;
 
         if (event.getShowComments() == true) {
-            comments = commentMapper.commentListToCommentDTOList(event.getComments());
+            comments = commentMapper.commentListToCommentDTOList(eventRepository.getEventComments(event.getId()));
         } else {
             comments = null;
         }
@@ -111,7 +113,7 @@ public class EventMapper {
                 .views(event.getViews())
                 .createdOn(event.getCreatedOn())
                 .publishedOn(event.getPublishedOn())
-                .state(eventStateToEventFullDTOState(event.getState()))
+                .state(event.getState())
                 .comments(comments)
                 .build();
     }
@@ -149,14 +151,6 @@ public class EventMapper {
         }
 
         return eventFullDTOS;
-    }
-
-    private EventFullDTO.State eventStateToEventFullDTOState(Event.State state) {
-        return switch (state) {
-            case PENDING -> EventFullDTO.State.PENDING;
-            case PUBLISHED -> EventFullDTO.State.PUBLISHED;
-            case CANCELED -> EventFullDTO.State.CANCELED;
-        };
     }
 
     public Event patchEventByUpdateEventUserRequest(Event event, UpdateEventUserRequest updateEventUserRequest, Category category) {

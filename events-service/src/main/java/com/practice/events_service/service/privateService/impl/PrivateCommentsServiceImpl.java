@@ -3,6 +3,7 @@ package com.practice.events_service.service.privateService.impl;
 import com.practice.events_service.dto.modelDTO.CommentDTO;
 import com.practice.events_service.dto.newDTO.NewCommentDTO;
 import com.practice.events_service.dto.updateRequest.UpdateCommentRequest;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.exception.conflict.EventNotPublishedException;
 import com.practice.events_service.exception.other.ForbiddenException;
 import com.practice.events_service.mapper.CommentMapper;
@@ -34,7 +35,7 @@ public class PrivateCommentsServiceImpl implements PrivateCommentsService {
             throw new ForbiddenException("Комментировать могут только участники события и инициатор!");
         }
 
-        if (event.getState() != Event.State.PUBLISHED) {
+        if (event.getState() != State.PUBLISHED) {
             throw new EventNotPublishedException("Событие ещё не опубликовано!");
         }
 
@@ -50,8 +51,8 @@ public class PrivateCommentsServiceImpl implements PrivateCommentsService {
 
     @Override
     public CommentDTO updateComment(Long authorId, Long eventId, Long commentId, UpdateCommentRequest updateCommentRequest) {
-        checkService.userExistsCheck(authorId);
-        checkService.eventExistsCheck(eventId);
+        checkService.findUser(authorId);
+        checkService.findEvent(eventId);
         Comment comment = checkService.findComment(commentId);
 
         if (!comment.getAuthor().getId().equals(authorId)) {
@@ -70,8 +71,8 @@ public class PrivateCommentsServiceImpl implements PrivateCommentsService {
 
     @Override
     public void deleteComment(Long authorId, Long eventId, Long commentId) {
-        checkService.userExistsCheck(authorId);
-        checkService.eventExistsCheck(eventId);
+        checkService.findUser(authorId);
+        checkService.findEvent(eventId);
         Comment comment = checkService.findComment(commentId);
 
         if (!comment.getEvent().getId().equals(eventId)) {

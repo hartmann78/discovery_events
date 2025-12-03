@@ -1,9 +1,11 @@
 package com.practice.stats_dto;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class ViewStats {
     private String app;

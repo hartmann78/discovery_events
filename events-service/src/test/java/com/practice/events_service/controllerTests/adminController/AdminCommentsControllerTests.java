@@ -9,10 +9,7 @@ import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.newDTO.NewUserRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.generators.*;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminCommentsControllerTests {
     @Autowired
     private MockMvc mockMvc;
@@ -46,24 +42,18 @@ public class AdminCommentsControllerTests {
     @Autowired
     private CommentGenerator commentGenerator;
 
-    private static NewUserRequest commentAuthor;
-    private static NewCommentDTO newCommentDTO1;
-    private static NewCommentDTO newCommentDTO2;
-    private static NewCommentDTO newCommentDTO3;
+    private NewUserRequest commentAuthor;
+    private NewCommentDTO newCommentDTO;
 
-    private static Long initiatorId;
-    private static Long categoryId;
-    private static Long eventId;
+    private Long initiatorId;
+    private Long categoryId;
+    private Long eventId;
+    private Long commentAuthorId;
+    private Long requestId;
+    private Long commentId;
 
-    private static Long commentAuthorId;
-    private static Long requestId;
-    private static Long commentId1;
-    private static Long commentId2;
-    private static Long commentId3;
-
-    @Test
-    @Order(1)
-    void getAllUserComments() throws Exception {
+    @BeforeEach
+    void postComment() throws Exception {
         // Create user
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
         String newUserRequestJson = objectMapper.writeValueAsString(newUserRequest);
@@ -138,8 +128,8 @@ public class AdminCommentsControllerTests {
                 .andExpect(status().isOk());
 
         // Post comment 1
-        newCommentDTO1 = commentGenerator.generateNewCommentDTO();
-        String newCommentDTOJson1 = objectMapper.writeValueAsString(newCommentDTO1);
+        newCommentDTO = commentGenerator.generateNewCommentDTO();
+        String newCommentDTOJson1 = objectMapper.writeValueAsString(newCommentDTO);
 
         ResultActions newCommentResult1 = mockMvc.perform(post("/users/{userId}/events/{eventId}/comments", initiatorId, eventId)
                         .header("X-Sharer-Author-Id", commentAuthorId)
@@ -147,14 +137,17 @@ public class AdminCommentsControllerTests {
                         .content(newCommentDTOJson1))
                 .andExpect(status().isCreated());
 
-        commentId1 = objectMapper.readValue(newCommentResult1.andReturn().getResponse().getContentAsString(), CommentDTO.class).getId();
+        commentId = objectMapper.readValue(newCommentResult1.andReturn().getResponse().getContentAsString(), CommentDTO.class).getId();
+    }
 
+    @Test
+    void getAllUserComments() throws Exception {
         mockMvc.perform(get("/admin/users/{userId}/comments", commentAuthorId)
                         .param("from", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(commentId1))
-                .andExpect(jsonPath("$[0].text").value(newCommentDTO1.getText()))
+                .andExpect(jsonPath("$[0].id").value(commentId))
+                .andExpect(jsonPath("$[0].text").value(newCommentDTO.getText()))
                 .andExpect(jsonPath("$[0].fromEventInitiator").value("false"))
                 .andExpect(jsonPath("$[0].authorName").value(commentAuthor.getName()))
                 .andExpect(jsonPath("$[0].createdOn").exists())
@@ -163,14 +156,13 @@ public class AdminCommentsControllerTests {
     }
 
     @Test
-    @Order(2)
     void getAllEventComments() throws Exception {
         mockMvc.perform(get("/admin/events/{eventId}/comments", eventId)
                         .param("from", "0")
                         .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(commentId1))
-                .andExpect(jsonPath("$[0].text").value(newCommentDTO1.getText()))
+                .andExpect(jsonPath("$[0].id").value(commentId))
+                .andExpect(jsonPath("$[0].text").value(newCommentDTO.getText()))
                 .andExpect(jsonPath("$[0].fromEventInitiator").value("false"))
                 .andExpect(jsonPath("$[0].authorName").value(commentAuthor.getName()))
                 .andExpect(jsonPath("$[0].createdOn").exists())
@@ -178,12 +170,11 @@ public class AdminCommentsControllerTests {
     }
 
     @Test
-    @Order(3)
     void findCommentById() throws Exception {
-        mockMvc.perform(get("/admin/comments/{commentId}", commentId1))
+        mockMvc.perform(get("/admin/comments/{commentId}", commentId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(commentId1))
-                .andExpect(jsonPath("$.text").value(newCommentDTO1.getText()))
+                .andExpect(jsonPath("$.id").value(commentId))
+                .andExpect(jsonPath("$.text").value(newCommentDTO.getText()))
                 .andExpect(jsonPath("$.fromEventInitiator").value("false"))
                 .andExpect(jsonPath("$.authorName").value(commentAuthor.getName()))
                 .andExpect(jsonPath("$.createdOn").exists())
@@ -191,50 +182,20 @@ public class AdminCommentsControllerTests {
     }
 
     @Test
-    @Order(4)
     void deleteAllUserComments() throws Exception {
-        // Delete comment 1
         mockMvc.perform(delete("/admin/users/{userId}/comments", commentAuthorId))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @Order(5)
     void deleteAllEventComments() throws Exception {
-        // Post comment 2
-        newCommentDTO2 = commentGenerator.generateNewCommentDTO();
-        String newCommentDTOJson2 = objectMapper.writeValueAsString(newCommentDTO2);
-
-        // Delete comment 1
-        ResultActions newCommentResult2 = mockMvc.perform(post("/users/{userId}/events/{eventId}/comments", initiatorId, eventId)
-                        .header("X-Sharer-Author-Id", commentAuthorId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(newCommentDTOJson2))
-                .andExpect(status().isCreated());
-
-        commentId2 = objectMapper.readValue(newCommentResult2.andReturn().getResponse().getContentAsString(), CommentDTO.class).getId();
-
         mockMvc.perform(delete("/admin/events/{eventId}/comments", eventId))
                 .andExpect(status().isNoContent());
     }
 
     @Test
-    @Order(6)
     void deleteComment() throws Exception {
-        // Post comment 3
-        newCommentDTO3 = commentGenerator.generateNewCommentDTO();
-        String newCommentDTOJson3 = objectMapper.writeValueAsString(newCommentDTO2);
-
-        ResultActions newCommentResult3 = mockMvc.perform(post("/users/{userId}/events/{eventId}/comments", initiatorId, eventId)
-                        .header("X-Sharer-Author-Id", commentAuthorId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(newCommentDTOJson3))
-                .andExpect(status().isCreated());
-
-        commentId3 = objectMapper.readValue(newCommentResult3.andReturn().getResponse().getContentAsString(), CommentDTO.class).getId();
-
-        // Delete comment 3
-        mockMvc.perform(delete("/admin/comments/{commentId}", commentId3))
+        mockMvc.perform(delete("/admin/comments/{commentId}", commentId))
                 .andExpect(status().isNoContent());
     }
 }

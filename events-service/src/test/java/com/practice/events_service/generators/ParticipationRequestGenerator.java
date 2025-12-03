@@ -6,7 +6,6 @@ import com.practice.events_service.model.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Component
 public class ParticipationRequestGenerator {
@@ -14,7 +13,7 @@ public class ParticipationRequestGenerator {
         return ParticipationRequest.builder()
                 .requester(requestor)
                 .event(event)
-                .created(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .created(LocalDateTime.now())
                 .status(ParticipationRequest.Status.PENDING)
                 .build();
     }

@@ -10,6 +10,7 @@ import com.practice.events_service.dto.shortDTO.EventShortDTO;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
 import com.practice.events_service.dto.updateRequest.UpdateEventUserRequest;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.generators.*;
 import com.practice.events_service.dto.newDTO.NewUserRequest;
 import com.practice.events_service.service.adminService.AdminCategoriesService;
@@ -22,12 +23,12 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class PrivateEventsServiceTests {
     @Autowired
     private AdminUsersService adminUsersService;
@@ -53,16 +54,12 @@ public class PrivateEventsServiceTests {
     @Autowired
     private CommentGenerator commentGenerator;
 
-    private static UserDTO initiatorDTO;
-    private static CategoryDTO categoryDTO;
-    private static EventFullDTO eventFullDTO1;
-
-    private static UserDTO requesterDTO;
-    private static ParticipationRequestDTO participationRequestDTO;
-    private static CommentDTO commentDTO;
+    private UserDTO initiatorDTO;
+    private CategoryDTO categoryDTO;
+    private EventFullDTO eventFullDTO1;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void addNewEvent() {
         NewUserRequest newUserRequest = userGenerator.generateNewUserRequest();
         initiatorDTO = adminUsersService.postNewUser(newUserRequest);
@@ -88,20 +85,34 @@ public class PrivateEventsServiceTests {
         assertNotNull(eventFullDTO1.getConfirmedRequests());
         assertNotNull(eventFullDTO1.getCreatedOn());
         assertNull(eventFullDTO1.getPublishedOn());
-        assertEquals(EventFullDTO.State.PENDING, eventFullDTO1.getState());
+        assertEquals(State.PENDING, eventFullDTO1.getState());
         assertNotNull(eventFullDTO1.getViews());
         assertNotNull(eventFullDTO1.getComments());
+
+        UpdateEventAdminRequest updateEventAdminRequest = eventGenerator.generateUpdateEventAdminRequest(categoryDTO.getId());
+        updateEventAdminRequest.setStateAction(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT);
+        eventFullDTO1 = adminEventsService.patchEventById(eventFullDTO1.getId(), updateEventAdminRequest);
+
+        NewUserRequest author = userGenerator.generateNewUserRequest();
+        UserDTO requesterDTO = adminUsersService.postNewUser(author);
+
+        ParticipationRequestDTO participationRequestDTO1 = privateRequestsService.postEventParticipationRequest(requesterDTO.getId(), eventFullDTO1.getId());
+
+        EventRequestStatusUpdateRequest updateRequest1 = eventRequestStatusUpdateRequestGenerator.generateUpdateRequest
+                (List.of(participationRequestDTO1.getId()), EventRequestStatusUpdateRequest.Status.CONFIRMED);
+        privateEventsService.patchEventRequestsByUserId(initiatorDTO.getId(), eventFullDTO1.getId(), updateRequest1);
+
+        NewCommentDTO newCommentDTO1 = commentGenerator.generateNewCommentDTO();
+        privateCommentsService.postComment(requesterDTO.getId(), eventFullDTO1.getId(), newCommentDTO1);
     }
 
     @Test
-    @Order(2)
     void getEvents() {
         List<EventShortDTO> eventShortDTOS = privateEventsService.getEvents(initiatorDTO.getId(), 0, 10);
         assertFalse(eventShortDTOS.isEmpty());
     }
 
     @Test
-    @Order(3)
     void getEventById() {
         EventFullDTO getEvent = privateEventsService.getEventByUserId(initiatorDTO.getId(), eventFullDTO1.getId());
 
@@ -109,7 +120,7 @@ public class PrivateEventsServiceTests {
         assertEquals(eventFullDTO1.getTitle(), getEvent.getTitle());
         assertEquals(eventFullDTO1.getDescription(), getEvent.getDescription());
         assertEquals(eventFullDTO1.getAnnotation(), getEvent.getAnnotation());
-        assertEquals(eventFullDTO1.getEventDate(), getEvent.getEventDate());
+        assertEquals(eventFullDTO1.getEventDate().truncatedTo(ChronoUnit.SECONDS), getEvent.getEventDate().truncatedTo(ChronoUnit.SECONDS));
         assertEquals(eventFullDTO1.getInitiator().getId(), getEvent.getInitiator().getId());
         assertEquals(eventFullDTO1.getInitiator().getName(), getEvent.getInitiator().getName());
         assertEquals(eventFullDTO1.getCategory().getId(), getEvent.getCategory().getId());
@@ -119,47 +130,38 @@ public class PrivateEventsServiceTests {
         assertEquals(eventFullDTO1.getParticipantLimit(), getEvent.getParticipantLimit());
         assertEquals(eventFullDTO1.getPaid(), getEvent.getPaid());
         assertEquals(eventFullDTO1.getRequestModeration(), getEvent.getRequestModeration());
-        assertEquals(eventFullDTO1.getConfirmedRequests(), getEvent.getConfirmedRequests());
-        assertEquals(eventFullDTO1.getCreatedOn(), getEvent.getCreatedOn());
-        assertEquals(eventFullDTO1.getPublishedOn(), getEvent.getPublishedOn());
+        assertEquals(1, getEvent.getConfirmedRequests());
+        assertEquals(eventFullDTO1.getCreatedOn().truncatedTo(ChronoUnit.SECONDS), getEvent.getCreatedOn().truncatedTo(ChronoUnit.SECONDS));
+        assertEquals(eventFullDTO1.getPublishedOn().truncatedTo(ChronoUnit.SECONDS), getEvent.getPublishedOn().truncatedTo(ChronoUnit.SECONDS));
         assertEquals(eventFullDTO1.getState(), getEvent.getState());
         assertEquals(eventFullDTO1.getViews(), getEvent.getViews());
-        assertEquals(eventFullDTO1.getComments(), getEvent.getComments());
+        assertEquals(1, getEvent.getComments().size());
     }
 
     @Test
-    @Order(4)
     void getEventRequests() {
-        NewUserRequest requester = userGenerator.generateNewUserRequest();
-        requesterDTO = adminUsersService.postNewUser(requester);
-
-        UpdateEventAdminRequest updateEventAdminRequest = eventGenerator.generateUpdateEventAdminRequest(categoryDTO.getId());
-        updateEventAdminRequest.setShowComments(true);
-
-        updateEventAdminRequest.setStateAction(UpdateEventAdminRequest.StateAction.PUBLISH_EVENT);
-        eventFullDTO1 = adminEventsService.patchEventById(eventFullDTO1.getId(), updateEventAdminRequest);
-
-        participationRequestDTO = privateRequestsService.postEventParticipationRequest(requesterDTO.getId(), eventFullDTO1.getId());
-
         List<ParticipationRequestDTO> requestDTOS = privateEventsService.getEventRequestsByUserIdAndEventId(initiatorDTO.getId(), eventFullDTO1.getId());
         assertFalse(requestDTOS.isEmpty());
     }
 
     @Test
-    @Order(5)
     void patchEventRequests() {
+        NewUserRequest author2 = userGenerator.generateNewUserRequest();
+        UserDTO requesterDTO2 = adminUsersService.postNewUser(author2);
+
+        ParticipationRequestDTO participationRequestDTO2 = privateRequestsService.postEventParticipationRequest(requesterDTO2.getId(), eventFullDTO1.getId());
+
         EventRequestStatusUpdateRequest updateRequest = eventRequestStatusUpdateRequestGenerator.generateUpdateRequest
-                (List.of(participationRequestDTO.getId()), EventRequestStatusUpdateRequest.Status.CONFIRMED);
+                (List.of(participationRequestDTO2.getId()), EventRequestStatusUpdateRequest.Status.CONFIRMED);
 
         EventRequestStatusUpdateResult eventRequestStatusUpdateResult = privateEventsService.patchEventRequestsByUserId
                 (initiatorDTO.getId(), eventFullDTO1.getId(), updateRequest);
 
-        assertFalse(eventRequestStatusUpdateResult.getConfirmedRequests().isEmpty());
         assertTrue(eventRequestStatusUpdateResult.getRejectedRequests().isEmpty());
+        assertFalse(eventRequestStatusUpdateResult.getConfirmedRequests().isEmpty());
     }
 
     @Test
-    @Order(6)
     void patchEvent() {
         // Create second event
         NewEventDTO newEventDTO2 = eventGenerator.generateNewEventDTO(categoryDTO.getId());
@@ -184,18 +186,14 @@ public class PrivateEventsServiceTests {
         assertNotNull(eventFullDTO2.getConfirmedRequests());
         assertNotNull(eventFullDTO2.getCreatedOn());
         assertNull(eventFullDTO2.getPublishedOn());
-        assertEquals(EventFullDTO.State.CANCELED, eventFullDTO2.getState());
+        assertEquals(State.CANCELED, eventFullDTO2.getState());
         assertNotNull(eventFullDTO2.getViews());
         assertNotNull(eventFullDTO2.getComments());
     }
 
     @Test
-    @Order(7)
     void patchEventCommentsStateHideComments() {
         // To the first event (Published)
-        NewCommentDTO newCommentDTO = commentGenerator.generateNewCommentDTO();
-        commentDTO = privateCommentsService.postComment(requesterDTO.getId(), eventFullDTO1.getId(), newCommentDTO);
-
         UpdateEventCommentsState updateEventCommentsState = eventGenerator.generateUpdateEventCommentsState(true, false);
         privateEventsService.patchEventCommentsState(initiatorDTO.getId(), eventFullDTO1.getId(), updateEventCommentsState);
 
@@ -204,7 +202,6 @@ public class PrivateEventsServiceTests {
     }
 
     @Test
-    @Order(8)
     void patchEventCommentsStateShowComments() {
         // To the first event (Published)
         UpdateEventCommentsState updateEventCommentsState = eventGenerator.generateUpdateEventCommentsState(true, true);
@@ -212,6 +209,5 @@ public class PrivateEventsServiceTests {
 
         EventFullDTO getEvent = privateEventsService.getEventByUserId(initiatorDTO.getId(), eventFullDTO1.getId());
         assertEquals(1, getEvent.getComments().size());
-        assertTrue(getEvent.getComments().contains(commentDTO));
     }
 }

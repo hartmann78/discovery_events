@@ -8,6 +8,7 @@ import com.practice.events_service.dto.newDTO.NewEventDTO;
 import com.practice.events_service.dto.modelDTO.ParticipationRequestDTO;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
 import com.practice.events_service.dto.updateRequest.UpdateEventUserRequest;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.exception.other.BadRequestException;
 import com.practice.events_service.exception.other.ForbiddenException;
 import com.practice.events_service.exception.conflict.*;
@@ -38,7 +39,7 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
     @Override
     public List<EventShortDTO> getEvents(Long userId, int from, int size) {
         checkService.fromAndSizeCheck(from, size);
-        checkService.userExistsCheck(userId);
+        checkService.findUser(userId);
 
         List<Event> events = eventRepository.getInitiatorEvents(userId, from, size);
 
@@ -57,8 +58,8 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
 
     @Override
     public List<ParticipationRequestDTO> getEventRequestsByUserIdAndEventId(Long userId, Long eventId) {
-        checkService.userExistsCheck(userId);
-        checkService.eventExistsCheck(eventId);
+        checkService.findUser(userId);
+        checkService.findEvent(eventId);
 
         List<ParticipationRequest> requests = participationRequestRepository.getEventInitiatorRequests(userId, eventId);
 
@@ -79,14 +80,14 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
 
     @Override
     public EventFullDTO patchEventByUserId(Long userId, Long eventId, UpdateEventUserRequest updateEventUserRequest) {
-        checkService.userExistsCheck(userId);
+        checkService.findUser(userId);
         Event event = checkService.findEvent(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {
             throw new ForbiddenException("id пользователя не совпадает с id организатора события!");
         }
 
-        if (event.getState() == Event.State.PUBLISHED) {
+        if (event.getState() == State.PUBLISHED) {
             throw new EventIsPublishedException("Событие уже опубликовано!");
         }
 
@@ -100,9 +101,9 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
         event = eventMapper.patchEventByUpdateEventUserRequest(event, updateEventUserRequest, category);
 
         if (updateEventUserRequest.getStateAction() == UpdateEventUserRequest.StateAction.SEND_TO_REVIEW) {
-            event.setState(Event.State.PENDING);
+            event.setState(State.PENDING);
         } else if (updateEventUserRequest.getStateAction() == UpdateEventUserRequest.StateAction.CANCEL_REVIEW) {
-            event.setState(Event.State.CANCELED);
+            event.setState(State.CANCELED);
         }
 
         eventRepository.save(event);
@@ -112,7 +113,7 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
 
     @Override
     public EventRequestStatusUpdateResult patchEventRequestsByUserId(Long userId, Long eventId, EventRequestStatusUpdateRequest eventRequestStatusUpdateRequest) {
-        checkService.userExistsCheck(userId);
+        checkService.findUser(userId);
         Event event = checkService.findEvent(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {
@@ -151,7 +152,7 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
             throw new BadRequestException("Отсутствуют параметры!");
         }
 
-        checkService.userExistsCheck(userId);
+        checkService.findUser(userId);
         Event event = checkService.findEvent(eventId);
 
         if (!event.getInitiator().getId().equals(userId)) {

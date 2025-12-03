@@ -6,10 +6,7 @@ import com.practice.events_service.dto.updateRequest.UpdateCompilationRequest;
 import com.practice.events_service.exception.not_found.CompilationNotFoundException;
 import com.practice.events_service.generators.CompilationGenerator;
 import com.practice.events_service.service.adminService.AdminCompilationsService;
-import org.junit.jupiter.api.MethodOrderer;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -20,18 +17,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class AdminCompilationsServiceTests {
     @Autowired
     private AdminCompilationsService adminCompilationsService;
-
     @Autowired
     private CompilationGenerator compilationGenerator;
 
-    private static CompilationDTO compilationDTO;
+    private CompilationDTO compilationDTO;
 
     @Test
-    @Order(1)
+    @BeforeEach
     void postNewCompilation() {
         NewCompilationDTO newCompilationDTO = compilationGenerator.generateNewCompilationDTO(Collections.emptyList());
         compilationDTO = adminCompilationsService.postNewCompilation(newCompilationDTO);
@@ -43,7 +38,6 @@ public class AdminCompilationsServiceTests {
     }
 
     @Test
-    @Order(2)
     void patchCompilation() {
         UpdateCompilationRequest updateCompilationRequest = compilationGenerator.generateUpdateCompilationRequest(Collections.emptyList());
         CompilationDTO updatedCompilationDTO = adminCompilationsService.patchCompilation(compilationDTO.getId(), updateCompilationRequest);
@@ -55,7 +49,6 @@ public class AdminCompilationsServiceTests {
     }
 
     @Test
-    @Order(3)
     void deleteCompilation() {
         adminCompilationsService.deleteCompilation(compilationDTO.getId());
 

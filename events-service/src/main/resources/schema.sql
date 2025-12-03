@@ -17,7 +17,7 @@ create table if not exists events
     title              varchar(120) check ( length(title) >= 3 )         not null,
     description        varchar(7000) check ( length(description) >= 20 ) not null,
     annotation         varchar(2000) check ( length(annotation) >= 20)   not null,
-    event_date         varchar                                           not null,
+    event_date         timestamp without time zone                       not null,
     initiator_id       bigint references users (id)                      not null,
     category_id        bigint references categories (id)                 not null,
     lat                float8                                            not null,
@@ -27,8 +27,8 @@ create table if not exists events
     request_moderation boolean                                           not null,
     confirmed_requests bigint check ( confirmed_requests >= 0 )          not null,
     views              bigint check ( views >= 0 )                       not null,
-    created_on         varchar                                           not null,
-    published_on       varchar                                           null,
+    created_on         timestamp without time zone                       not null,
+    published_on       timestamp without time zone                       null,
     state              varchar                                           not null,
     comments_available boolean                                           not null,
     show_comments      boolean                                           not null
@@ -39,7 +39,7 @@ create table if not exists participation_requests
     id           serial primary key unique     not null,
     event_id     bigint references events (id) not null,
     requester_id bigint references users (id)  not null,
-    created      varchar                       not null,
+    created      timestamp without time zone   not null,
     status       varchar
 );
 
@@ -63,6 +63,6 @@ create table if not exists comments
     from_event_initiator boolean                                         not null,
     author_id            bigint references users (id) on delete cascade  not null,
     event_id             bigint references events (id) on delete cascade not null,
-    created_on           varchar                                         not null,
-    updated_on           varchar                                         null
+    created_on           timestamp without time zone                     not null,
+    updated_on           timestamp without time zone                     null
 );

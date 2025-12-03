@@ -1,8 +1,12 @@
 package com.practice.stats_dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -29,7 +33,8 @@ public class EndpointHit {
     @Column(name = "ip")
     private String ip;
 
-    @NotBlank
+    @NotNull
     @Column(name = "timestamp")
-    private String timestamp;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime timestamp;
 }

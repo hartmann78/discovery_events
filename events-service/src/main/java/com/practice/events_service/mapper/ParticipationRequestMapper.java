@@ -8,7 +8,6 @@ import com.practice.events_service.model.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +17,7 @@ public class ParticipationRequestMapper {
         return ParticipationRequest.builder()
                 .event(event)
                 .requester(requester)
-                .created(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
+                .created(LocalDateTime.now())
                 .build();
     }
 

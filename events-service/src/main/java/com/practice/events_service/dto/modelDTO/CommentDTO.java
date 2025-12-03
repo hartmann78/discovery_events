@@ -1,19 +1,24 @@
 package com.practice.events_service.dto.modelDTO;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.*;
 
-@Data
-@Builder
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class CommentDTO {
     private Long id;
     private String text;
     private String authorName;
     private Boolean fromEventInitiator;
-    private String createdOn;
-    private String updatedOn;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdOn;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime updatedOn;
 }

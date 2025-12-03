@@ -9,78 +9,68 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class StatsServiceTests {
     @Autowired
     private StatsService statsService;
     @Autowired
     private EndpointHitGenerator endpointHitGenerator;
 
-    private static final String startRange = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).minusDays(1).toString();
-    private static final String endRange = LocalDateTime.now().truncatedTo(ChronoUnit.SECONDS).plusDays(1).toString();
+    private EndpointHit endpointHit;
 
-    private static EndpointHit endpointHit;
+    private final String app = "events-service";
+    private final String uri = "/events/1";
+    private final LocalDateTime eventDate = LocalDateTime.now();
+    private final LocalDateTime startRange = eventDate.minusDays(1);
+    private final LocalDateTime endRange = eventDate.plusDays(1);
 
     @Test
-    @Order(1)
+    @BeforeEach
     void post() {
-        endpointHit = endpointHitGenerator.generate();
+        endpointHit = endpointHitGenerator.generate(app, uri, eventDate);
         assertDoesNotThrow(() -> statsService.post(endpointHit));
         assertNotNull(endpointHit.getId());
     }
 
     @Test
-    @Order(2)
     void getUriStats() {
-        String[] uris = new String[]{"/events/1"};
-
-        List<ViewStats> viewStats = statsService.get(startRange, endRange, false, uris);
+        List<ViewStats> viewStats = statsService.get(startRange, endRange, false, new String[]{uri});
         assertEquals(1, viewStats.size());
     }
 
     @Test
-    @Order(3)
     void getUniqueIpUriStats() {
-        String[] uris = new String[]{"/events/1"};
-
-        List<ViewStats> viewStats = statsService.get(startRange, endRange, true, uris);
+        List<ViewStats> viewStats = statsService.get(startRange, endRange, true, new String[]{uri});
         assertEquals(1, viewStats.size());
     }
 
     @Test
-    @Order(4)
     void getStatsWithoutUris() {
-        EndpointHit endpointHit = endpointHitGenerator.generate();
-        endpointHit.setUri("/events/2");
+        String uri2 = "/events/2";
+
+        EndpointHit endpointHit = endpointHitGenerator.generate(app, uri2, eventDate);
         statsService.post(endpointHit);
 
-        String[] uris = new String[]{};
-
-        List<ViewStats> viewStats = statsService.get(startRange, endRange, false, uris);
+        List<ViewStats> viewStats = statsService.get(startRange, endRange, false, new String[]{uri2});
         assertFalse(viewStats.isEmpty());
     }
 
     @Test
-    @Order(5)
     void getUniqueIpStatsWithoutUris() {
-        EndpointHit endpointHit = endpointHitGenerator.generate();
-        endpointHit.setUri("/events/3");
+        String uri3 = "/events/3";
+
+        EndpointHit endpointHit = endpointHitGenerator.generate(app, uri3, eventDate);
         statsService.post(endpointHit);
 
-        String[] uris = new String[]{};
-
-        List<ViewStats> viewStats = statsService.get(startRange, endRange, true, uris);
+        List<ViewStats> viewStats = statsService.get(startRange, endRange, true, new String[]{uri3});
         assertFalse(viewStats.isEmpty());
     }
 
     @Test
-    @Order(6)
     void checkIpExistsByUri() {
         String uri = endpointHit.getUri();
         String ip = endpointHit.getIp();

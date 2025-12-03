@@ -9,6 +9,7 @@ import com.practice.stats_service.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -17,7 +18,7 @@ public class StatsServiceImpl implements StatsService {
     private final StatsRepository statsRepository;
 
     @Override
-    public List<ViewStats> get(String start, String end, Boolean unique, String[] uris) {
+    public List<ViewStats> get(LocalDateTime start, LocalDateTime end, Boolean unique, String[] uris) {
         String app = "events-service";
         List<ViewStats> answer;
 

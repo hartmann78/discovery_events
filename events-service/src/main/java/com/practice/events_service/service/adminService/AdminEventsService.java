@@ -4,10 +4,11 @@ import com.practice.events_service.dto.modelDTO.EventFullDTO;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface AdminEventsService {
-    List<EventFullDTO> getEvents(Long[] users, String[] states, Long[] categories, String rangeStart, String rangeEnd, int from, int size);
+    List<EventFullDTO> getEvents(Long[] users, String[] states, Long[] categories, LocalDateTime rangeStart, LocalDateTime rangeEnd, int from, int size);
 
     EventFullDTO patchEventById(Long eventId, UpdateEventAdminRequest updateEventAdminRequest);
 

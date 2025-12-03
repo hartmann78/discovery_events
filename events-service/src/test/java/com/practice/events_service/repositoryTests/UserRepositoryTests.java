@@ -13,7 +13,6 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @DataJpaTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class UserRepositoryTests {
     @Autowired
     private UserRepository userRepository;
@@ -22,6 +21,7 @@ public class UserRepositoryTests {
 
     private User user;
 
+    @Test
     @BeforeEach
     void save() {
         user = userGenerator.generateUser();
@@ -29,7 +29,6 @@ public class UserRepositoryTests {
     }
 
     @Test
-    @Order(1)
     void findById() {
         assertNotNull(user.getId());
 
@@ -40,21 +39,12 @@ public class UserRepositoryTests {
     }
 
     @Test
-    @Order(2)
-    void checkUserEmailExists() {
-        Boolean check = userRepository.checkUserEmailExists(user.getEmail());
-        assertTrue(check);
-    }
-
-    @Test
-    @Order(3)
     void findAll() {
         List<User> findAllUsers = userRepository.findAll();
         assertTrue(findAllUsers.contains(user));
     }
 
     @Test
-    @Order(4)
     void update() {
         User updateUser = userGenerator.generateUser();
 
@@ -70,11 +60,16 @@ public class UserRepositoryTests {
     }
 
     @Test
-    @Order(5)
     void delete() {
         userRepository.deleteById(user.getId());
 
         Optional<User> checkUser = userRepository.findById(user.getId());
         assertTrue(checkUser.isEmpty());
+    }
+
+    @Test
+    void checkUserEmailExists() {
+        Boolean check = userRepository.checkUserEmailExists(user.getEmail());
+        assertTrue(check);
     }
 }

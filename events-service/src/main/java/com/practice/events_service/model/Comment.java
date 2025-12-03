@@ -3,6 +3,8 @@ package com.practice.events_service.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
 @Builder
@@ -30,8 +32,8 @@ public class Comment {
     private Event event;
 
     @Column(name = "created_on")
-    private String createdOn;
+    private LocalDateTime createdOn;
 
     @Column(name = "updated_on")
-    private String updatedOn;
+    private LocalDateTime updatedOn;
 }

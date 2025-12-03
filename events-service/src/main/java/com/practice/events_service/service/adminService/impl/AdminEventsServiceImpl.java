@@ -3,6 +3,7 @@ package com.practice.events_service.service.adminService.impl;
 import com.practice.events_service.dto.modelDTO.EventFullDTO;
 import com.practice.events_service.dto.updateRequest.UpdateEventAdminRequest;
 import com.practice.events_service.dto.updateRequest.UpdateEventCommentsState;
+import com.practice.events_service.enums.State;
 import com.practice.events_service.exception.conflict.EventIsCanceledException;
 import com.practice.events_service.exception.conflict.EventIsPublishedException;
 import com.practice.events_service.exception.other.BadRequestException;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -31,8 +31,8 @@ public class AdminEventsServiceImpl implements AdminEventsService {
     public List<EventFullDTO> getEvents(Long[] users,
                                         String[] states,
                                         Long[] categories,
-                                        String rangeStart,
-                                        String rangeEnd,
+                                        LocalDateTime rangeStart,
+                                        LocalDateTime rangeEnd,
                                         int from,
                                         int size) {
         checkService.fromAndSizeCheck(from, size);
@@ -47,11 +47,11 @@ public class AdminEventsServiceImpl implements AdminEventsService {
     public EventFullDTO patchEventById(Long eventId, UpdateEventAdminRequest updateEventAdminRequest) {
         Event event = checkService.findEvent(eventId);
 
-        if (event.getState() == Event.State.PUBLISHED) {
+        if (event.getState() == State.PUBLISHED) {
             throw new EventIsPublishedException("Событие уже опубликовано!");
         }
 
-        if (event.getState() == Event.State.CANCELED) {
+        if (event.getState() == State.CANCELED) {
             throw new EventIsCanceledException("Событие уже отменено!");
         }
 
@@ -67,10 +67,10 @@ public class AdminEventsServiceImpl implements AdminEventsService {
         if (updateEventAdminRequest.getStateAction() == UpdateEventAdminRequest.StateAction.PUBLISH_EVENT) {
             checkService.eventDateAfterPublicationPlusOneHourCheck(event.getEventDate());
 
-            event.setPublishedOn(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
-            event.setState(Event.State.PUBLISHED);
+            event.setPublishedOn(LocalDateTime.now());
+            event.setState(State.PUBLISHED);
         } else if (updateEventAdminRequest.getStateAction() == UpdateEventAdminRequest.StateAction.REJECT_EVENT) {
-            event.setState(Event.State.CANCELED);
+            event.setState(State.CANCELED);
         }
 
         eventRepository.save(event);

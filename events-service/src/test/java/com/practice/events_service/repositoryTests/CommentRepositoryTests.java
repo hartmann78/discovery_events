@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
-@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CommentRepositoryTests {
     @Autowired
     private UserRepository userRepository;
@@ -41,6 +39,7 @@ public class CommentRepositoryTests {
     private Comment comment1;
     private Comment comment2;
 
+    @Test
     @BeforeEach
     void save() {
         initiator = userGenerator.generateUser();
@@ -63,7 +62,6 @@ public class CommentRepositoryTests {
     }
 
     @Test
-    @Order(1)
     void findById() {
         Optional<Comment> checkComment1 = commentRepository.findById(comment1.getId());
         assertTrue(checkComment1.isPresent());
@@ -76,23 +74,7 @@ public class CommentRepositoryTests {
         assertEquals(comment2, checkComment2.get());
     }
 
-
     @Test
-    @Order(2)
-    void getAllUserComments() {
-        List<Comment> getAllUserComments = commentRepository.getAllUserComments(author.getId(), 0, 10);
-        assertEquals(2, getAllUserComments.size());
-    }
-
-    @Test
-    @Order(3)
-    void getAllEventComments() {
-        List<Comment> getAllEventComments = commentRepository.getAllEventComments(event.getId(), 0, 10);
-        assertEquals(2, getAllEventComments.size());
-    }
-
-    @Test
-    @Order(4)
     void findAll() {
         List<Comment> findAllComments = commentRepository.findAll();
         assertTrue(findAllComments.contains(comment1));
@@ -100,11 +82,10 @@ public class CommentRepositoryTests {
     }
 
     @Test
-    @Order(5)
     void update() {
         Comment updateComment = commentGenerator.generateComment(author, event);
         comment1.setText(updateComment.getText());
-        comment1.setUpdatedOn(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        comment1.setUpdatedOn(LocalDateTime.now());
         commentRepository.save(comment1);
 
         Optional<Comment> updatedComment = commentRepository.findById(comment1.getId());
@@ -114,7 +95,6 @@ public class CommentRepositoryTests {
     }
 
     @Test
-    @Order(6)
     void delete() {
         commentRepository.deleteById(comment2.getId());
 
@@ -123,7 +103,18 @@ public class CommentRepositoryTests {
     }
 
     @Test
-    @Order(7)
+    void getAllUserComments() {
+        List<Comment> getAllUserComments = commentRepository.getAllUserComments(author.getId(), 0, 10);
+        assertEquals(2, getAllUserComments.size());
+    }
+
+    @Test
+    void getAllEventComments() {
+        List<Comment> getAllEventComments = commentRepository.getAllEventComments(event.getId(), 0, 10);
+        assertEquals(2, getAllEventComments.size());
+    }
+
+    @Test
     void deleteAllUserComments() {
         commentRepository.deleteAllUserComments(author.getId());
 
@@ -132,7 +123,6 @@ public class CommentRepositoryTests {
     }
 
     @Test
-    @Order(8)
     void deleteAllEventComments() {
         commentRepository.deleteAllEventComments(event.getId());
 
