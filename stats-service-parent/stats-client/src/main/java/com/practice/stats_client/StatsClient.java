@@ -20,9 +20,10 @@ import java.time.LocalDateTime;
 @Component
 @RequiredArgsConstructor
 public class StatsClient {
-    private final ObjectMapper objectMapper;
-    private final String HOST;
     private final int PORT;
+    private final String HOST;
+    private final String appName;
+    private final ObjectMapper objectMapper;
 
     public Boolean checkServiceAvailability() {
         try (Socket ignored = new Socket(HOST, PORT)) {
@@ -39,7 +40,7 @@ public class StatsClient {
         URI postURI = URI.create(String.format("http://%s:%d/hit", HOST, PORT));
 
         EndpointHit endpointHit = EndpointHit.builder()
-                .app("events-service")
+                .app(appName)
                 .uri(request.getRequestURI())
                 .ip(request.getRemoteAddr())
                 .timestamp(LocalDateTime.now())

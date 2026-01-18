@@ -11,8 +11,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class BeanConfig {
     @Bean
-    public StatsClient statsClient(@Value("${stats.service.host}") String host, @Value("${stats.service.port}") int port) {
-        return new StatsClient(objectMapper(), host, port);
+    public StatsClient statsClient(@Value("${spring.application.name}") String appName,
+                                   @Value("${stats.service.host}") String host,
+                                   @Value("${stats.service.port}") int port) {
+        return new StatsClient(port, host, appName, objectMapper());
     }
 
     @Bean
