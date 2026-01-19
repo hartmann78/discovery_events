@@ -6,6 +6,7 @@ import com.practice.stats_service.service.StatsService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@Slf4j
 @RestController
 @RequestMapping
 @RequiredArgsConstructor
@@ -22,6 +24,7 @@ public class StatsController {
 
     @PostMapping("/hit")
     public ResponseEntity<EndpointHit> postEndpointHit(@RequestBody @Valid EndpointHit endpointHit, HttpServletRequest request) {
+        setLog(request);
         statsService.post(endpointHit);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -32,14 +35,19 @@ public class StatsController {
                                                         @RequestParam(required = false, defaultValue = "false") Boolean unique,
                                                         @RequestParam(required = false) String[] uris,
                                                         HttpServletRequest request) {
+        setLog(request);
         return new ResponseEntity<>(statsService.get(start, end, unique, uris), HttpStatus.OK);
     }
 
     @GetMapping("/check")
-    public ResponseEntity<Boolean> checkIpExistsByUri(@RequestParam String uri,
-                                                      @RequestParam String ip,
-                                                      HttpServletRequest request) {
+    public ResponseEntity<Boolean> checkIpExistsByUri(@RequestParam String uri, @RequestParam String ip, HttpServletRequest request) {
+        setLog(request);
         return new ResponseEntity<>(statsService.checkIpExistsByUri(uri, ip), HttpStatus.OK);
+    }
+
+    public void setLog(HttpServletRequest request) {
+        log.info("Получен запрос к эндпоинту: '{} {}', Строка параметров запроса: '{}'",
+                request.getMethod(), request.getRequestURI(), request.getQueryString());
     }
 }
 

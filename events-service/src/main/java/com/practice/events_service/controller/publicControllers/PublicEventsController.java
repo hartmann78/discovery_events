@@ -17,6 +17,8 @@ import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import static com.practice.events_service.utils.SetLog.setLog;
+
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -35,11 +37,14 @@ public class PublicEventsController {
                                                                   @RequestParam(required = false, defaultValue = "0") int from,
                                                                   @RequestParam(required = false, defaultValue = "10") int size,
                                                                   HttpServletRequest request) throws IOException, InterruptedException, URISyntaxException {
+        setLog(log, request);
         return new ResponseEntity<>(publicEventsService.getPublishedEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort, from, size, request), HttpStatus.OK);
     }
 
     @GetMapping("/{eventId}")
-    public ResponseEntity<EventFullDTO> getPublishedEventById(@PathVariable Long eventId, HttpServletRequest request) throws IOException, InterruptedException, URISyntaxException {
+    public ResponseEntity<EventFullDTO> getPublishedEventById(@PathVariable Long eventId,
+                                                              HttpServletRequest request) throws IOException, InterruptedException, URISyntaxException {
+        setLog(log, request);
         return new ResponseEntity<>(publicEventsService.getPublishedEventById(eventId, request), HttpStatus.OK);
     }
 }
