@@ -8,7 +8,6 @@ import com.practice.events_service.exception.conflict.EventIsCanceledException;
 import com.practice.events_service.exception.conflict.EventIsPublishedException;
 import com.practice.events_service.exception.other.BadRequestException;
 import com.practice.events_service.mapper.EventMapper;
-import com.practice.events_service.model.Category;
 import com.practice.events_service.model.Event;
 import com.practice.events_service.repository.EventRepository;
 import com.practice.events_service.service.adminService.AdminEventsService;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -55,14 +53,9 @@ public class AdminEventsServiceImpl implements AdminEventsService {
             throw new EventIsCanceledException("Событие уже отменено!");
         }
 
-        Category category = Stream.ofNullable(updateEventAdminRequest.getCategory())
-                .map(checkService::findCategory)
-                .findAny()
-                .orElse(null);
-
         checkService.eventDateAfterNowPlusTwoHoursCheck(updateEventAdminRequest.getEventDate());
 
-        event = eventMapper.patchEventByUpdateEventAdminRequest(event, updateEventAdminRequest, category);
+        event = eventMapper.patchEventByUpdateEventAdminRequest(event, updateEventAdminRequest);
 
         if (updateEventAdminRequest.getStateAction() == UpdateEventAdminRequest.StateAction.PUBLISH_EVENT) {
             checkService.eventDateAfterPublicationPlusOneHourCheck(event.getEventDate());

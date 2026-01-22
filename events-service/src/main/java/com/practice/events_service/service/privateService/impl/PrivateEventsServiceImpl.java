@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -91,14 +90,9 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
             throw new EventIsPublishedException("Событие уже опубликовано!");
         }
 
-        Category category = Stream.ofNullable(updateEventUserRequest.getCategory())
-                .map(checkService::findCategory)
-                .findAny()
-                .orElse(null);
-
         checkService.eventDateAfterNowPlusTwoHoursCheck(updateEventUserRequest.getEventDate());
 
-        event = eventMapper.patchEventByUpdateEventUserRequest(event, updateEventUserRequest, category);
+        event = eventMapper.patchEventByUpdateEventUserRequest(event, updateEventUserRequest);
 
         if (updateEventUserRequest.getStateAction() == UpdateEventUserRequest.StateAction.SEND_TO_REVIEW) {
             event.setState(State.PENDING);

@@ -13,6 +13,7 @@ import com.practice.events_service.model.Event;
 import com.practice.events_service.dto.other.Location;
 import com.practice.events_service.model.User;
 import com.practice.events_service.repository.EventRepository;
+import com.practice.events_service.utils.CheckService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -27,6 +28,7 @@ public class EventMapper {
     private final CategoryMapper categoryMapper;
     private final CommentMapper commentMapper;
     private final EventRepository eventRepository;
+    private final CheckService checkService;
 
     public Event createNewEvent(NewEventDTO newEventDTO, Category category, User initiator) {
         int participantLimit;
@@ -153,7 +155,7 @@ public class EventMapper {
         return eventFullDTOS;
     }
 
-    public Event patchEventByUpdateEventUserRequest(Event event, UpdateEventUserRequest updateEventUserRequest, Category category) {
+    public Event patchEventByUpdateEventUserRequest(Event event, UpdateEventUserRequest updateEventUserRequest) {
         if (updateEventUserRequest.getTitle() != null) {
             event.setTitle(updateEventUserRequest.getTitle());
         }
@@ -170,8 +172,8 @@ public class EventMapper {
             event.setEventDate(updateEventUserRequest.getEventDate());
         }
 
-        if (category != null) {
-            event.setCategory(category);
+        if (updateEventUserRequest.getCategory() != null) {
+            event.setCategory(checkService.findCategory(updateEventUserRequest.getCategory()));
         }
 
         if (updateEventUserRequest.getLocation() != null) {
@@ -207,7 +209,7 @@ public class EventMapper {
         return event;
     }
 
-    public Event patchEventByUpdateEventAdminRequest(Event event, UpdateEventAdminRequest updateEventAdminRequest, Category category) {
+    public Event patchEventByUpdateEventAdminRequest(Event event, UpdateEventAdminRequest updateEventAdminRequest) {
         if (updateEventAdminRequest.getTitle() != null) {
             event.setTitle(updateEventAdminRequest.getTitle());
         }
@@ -224,8 +226,8 @@ public class EventMapper {
             event.setEventDate(updateEventAdminRequest.getEventDate());
         }
 
-        if (category != null) {
-            event.setCategory(category);
+        if (updateEventAdminRequest.getCategory() != null) {
+            event.setCategory(checkService.findCategory(updateEventAdminRequest.getCategory()));
         }
 
         if (updateEventAdminRequest.getLocation() != null) {
