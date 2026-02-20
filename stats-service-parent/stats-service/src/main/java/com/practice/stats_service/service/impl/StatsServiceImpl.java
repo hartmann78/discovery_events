@@ -2,7 +2,6 @@ package com.practice.stats_service.service.impl;
 
 import com.practice.stats_dto.EndpointHit;
 import com.practice.stats_dto.ViewStats;
-import com.practice.stats_dto.ViewStatsComparator;
 import com.practice.stats_service.repository.StatsRepository;
 import com.practice.stats_service.service.StatsService;
 
@@ -10,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -37,7 +37,7 @@ public class StatsServiceImpl implements StatsService {
         }
 
         if (answer.size() >= 2) {
-            answer.sort(new ViewStatsComparator());
+            answer.sort(Comparator.comparingLong(ViewStats::getHits).reversed());
         }
 
         return answer;
