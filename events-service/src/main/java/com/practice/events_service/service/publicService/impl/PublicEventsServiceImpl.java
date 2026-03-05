@@ -65,12 +65,15 @@ public class PublicEventsServiceImpl implements PublicEventsService {
     }
 
     private void postEndpointHit(Long eventId, HttpServletRequest request) throws URISyntaxException, IOException, InterruptedException {
-        if (request != null && statsClient.checkServiceAvailability() == true) {
-            if (eventId != null && statsClient.checkIpExistsByUri(request) == false) {
-                eventRepository.incrementEventViews(eventId);
-            }
-
-            statsClient.post(request);
+        if (request == null || statsClient.checkServiceAvailability() == false) {
+            return;
         }
+
+        if (eventId != null && statsClient.checkIpExistsByUri(request) == false) {
+            eventRepository.incrementEventViews(eventId);
+        }
+
+        statsClient.post(request);
     }
 }
+
