@@ -49,7 +49,7 @@ public class PublicEventsServiceImpl implements PublicEventsService {
         List<Event> events = eventRepository.publicGetPublishedEvents(text, categories, paid, rangeStart, rangeEnd, onlyAvailable, sort.toString(), from, size);
         postEndpointHit(null, request);
 
-        return eventMapper.eventListToEventShortDTOList(events);
+        return events.stream().map(eventMapper::eventToEventShortDTO).toList();
     }
 
     @Override

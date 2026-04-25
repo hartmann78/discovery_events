@@ -22,14 +22,14 @@ public class AdminCommentServiceImpl implements AdminCommentsService {
     public List<CommentDTO> getAllUserComments(Long userId, int from, int size) {
         List<Comment> comments = commentRepository.getAllUserComments(userId, from, size);
 
-        return commentMapper.commentListToCommentDTOList(comments);
+        return comments.stream().map(commentMapper::commentToCommentDto).toList();
     }
 
     @Override
     public List<CommentDTO> getAllEventComments(Long eventId, int from, int size) {
         List<Comment> comments = commentRepository.getAllEventComments(eventId, from, size);
 
-        return commentMapper.commentListToCommentDTOList(comments);
+        return comments.stream().map(commentMapper::commentToCommentDto).toList();
     }
 
     @Override

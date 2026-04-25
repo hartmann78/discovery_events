@@ -42,7 +42,7 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
 
         List<Event> events = eventRepository.getInitiatorEvents(userId, from, size);
 
-        return eventMapper.eventListToEventShortDTOList(events);
+        return events.stream().map(eventMapper::eventToEventShortDTO).toList();
     }
 
     @Override
@@ -62,7 +62,7 @@ public class PrivateEventsServiceImpl implements PrivateEventsService {
 
         List<ParticipationRequest> requests = participationRequestRepository.getEventInitiatorRequests(userId, eventId);
 
-        return participationRequestMapper.requestListToRequestDTOList(requests);
+        return requests.stream().map(participationRequestMapper::requestToRequestDTO).toList();
     }
 
     @Override

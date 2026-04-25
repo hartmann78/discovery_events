@@ -30,7 +30,7 @@ public class PrivateRequestsServiceImpl implements PrivateRequestsService {
         checkService.findUser(userId);
         List<ParticipationRequest> requests = participationRequestRepository.getRequesterRequests(userId);
 
-        return participationRequestMapper.requestListToRequestDTOList(requests);
+        return requests.stream().map(participationRequestMapper::requestToRequestDTO).toList();
     }
 
     @Override

@@ -24,7 +24,7 @@ public class PublicCategoriesServiceImpl implements PublicCategoriesService {
         checkService.fromAndSizeCheck(from, size);
         List<Category> categories = categoryRepository.findAll(PageRequest.of(from, size)).getContent();
 
-        return categoryMapper.categoryListToCategoryDTOList(categories);
+        return categories.stream().map(categoryMapper::categoryToCategoryDTO).toList();
     }
 
     @Override

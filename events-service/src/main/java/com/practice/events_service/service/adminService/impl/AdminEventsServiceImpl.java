@@ -38,7 +38,7 @@ public class AdminEventsServiceImpl implements AdminEventsService {
 
         List<Event> events = eventRepository.adminGetEvents(users, states, categories, rangeStart, rangeEnd, from, size);
 
-        return eventMapper.eventListToEventEvenFullDTOList(events);
+        return events.stream().map(eventMapper::eventToEventFullDTO).toList();
     }
 
     @Override

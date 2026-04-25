@@ -6,9 +6,6 @@ import com.practice.events_service.dto.newDTO.NewUserRequest;
 import com.practice.events_service.model.User;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Component
 public class UserMapper {
     public User createNewUser(NewUserRequest newUserRequest) {
@@ -31,15 +28,5 @@ public class UserMapper {
                 .id(user.getId())
                 .name(user.getName())
                 .build();
-    }
-
-    public List<UserDTO> userListToUserDTOList(List<User> users) {
-        List<UserDTO> userDTOS = new ArrayList<>();
-
-        for (User user : users) {
-            userDTOS.add(userToUserDTO(user));
-        }
-
-        return userDTOS;
     }
 }

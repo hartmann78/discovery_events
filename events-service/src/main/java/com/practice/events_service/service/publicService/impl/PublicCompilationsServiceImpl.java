@@ -23,7 +23,7 @@ public class PublicCompilationsServiceImpl implements PublicCompilationsService 
         checkService.fromAndSizeCheck(from, size);
         List<Compilation> compilations = compilationRepository.getCompilations(pinned, from, size);
 
-        return compilationMapper.compilationListToCompilationDTOList(compilations);
+        return compilations.stream().map(compilationMapper::compilationToCompilationDTO).toList();
     }
 
     @Override

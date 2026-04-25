@@ -9,8 +9,6 @@ import com.practice.events_service.model.User;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Component
 public class CommentMapper {
@@ -33,16 +31,6 @@ public class CommentMapper {
                 .createdOn(comment.getCreatedOn())
                 .updatedOn(comment.getUpdatedOn())
                 .build();
-    }
-
-    public List<CommentDTO> commentListToCommentDTOList(List<Comment> comments) {
-        List<CommentDTO> commentDTOS = new ArrayList<>();
-
-        for (Comment comment : comments) {
-            commentDTOS.add(commentToCommentDto(comment));
-        }
-
-        return commentDTOS;
     }
 
     public Comment patchCommentByUpdateCommentRequest(Comment comment, UpdateCommentRequest updateCommentRequest) {

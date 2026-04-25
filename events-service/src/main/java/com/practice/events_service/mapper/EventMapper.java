@@ -94,7 +94,7 @@ public class EventMapper {
         List<CommentDTO> comments;
 
         if (event.getShowComments() == true) {
-            comments = commentMapper.commentListToCommentDTOList(eventRepository.getEventComments(event.getId()));
+            comments = eventRepository.getEventComments(event.getId()).stream().map(commentMapper::commentToCommentDto).toList();
         } else {
             comments = null;
         }
@@ -132,27 +132,6 @@ public class EventMapper {
                 .confirmedRequests(event.getConfirmedRequests())
                 .views(event.getViews())
                 .build();
-    }
-
-
-    public List<EventShortDTO> eventListToEventShortDTOList(List<Event> events) {
-        List<EventShortDTO> eventShortDTOS = new ArrayList<>();
-
-        for (Event event : events) {
-            eventShortDTOS.add(eventToEventShortDTO(event));
-        }
-
-        return eventShortDTOS;
-    }
-
-    public List<EventFullDTO> eventListToEventEvenFullDTOList(List<Event> events) {
-        List<EventFullDTO> eventFullDTOS = new ArrayList<>();
-
-        for (Event event : events) {
-            eventFullDTOS.add(eventToEventFullDTO(event));
-        }
-
-        return eventFullDTOS;
     }
 
     public Event patchEventByUpdateEventUserRequest(Event event, UpdateEventUserRequest updateEventUserRequest) {

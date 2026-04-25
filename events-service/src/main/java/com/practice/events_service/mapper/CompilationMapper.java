@@ -48,16 +48,6 @@ public class CompilationMapper {
                 .build();
     }
 
-    public List<CompilationDTO> compilationListToCompilationDTOList(List<Compilation> compilations) {
-        List<CompilationDTO> compilationDTOS = new ArrayList<>();
-
-        for (Compilation compilation : compilations) {
-            compilationDTOS.add(compilationToCompilationDTO(compilation));
-        }
-
-        return compilationDTOS;
-    }
-
     public Compilation patchCompilationByUpdateCompilationRequest(Compilation compilation, UpdateCompilationRequest updateCompilationRequest, List<Event> events) {
         if (updateCompilationRequest.getTitle() != null) {
             compilation.setTitle(updateCompilationRequest.getTitle());

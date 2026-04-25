@@ -31,16 +31,6 @@ public class ParticipationRequestMapper {
                 .build();
     }
 
-    public List<ParticipationRequestDTO> requestListToRequestDTOList(List<ParticipationRequest> requests) {
-        List<ParticipationRequestDTO> requestDTOS = new ArrayList<>();
-
-        for (ParticipationRequest request : requests) {
-            requestDTOS.add(requestToRequestDTO(request));
-        }
-
-        return requestDTOS;
-    }
-
     public EventRequestStatusUpdateResult requestsListToEventRequestStatusUpdateResult(List<ParticipationRequest> requests) {
         List<ParticipationRequestDTO> confirmed = new ArrayList<>();
         List<ParticipationRequestDTO> rejected = new ArrayList<>();

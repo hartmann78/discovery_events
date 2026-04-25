@@ -25,7 +25,7 @@ public class AdminUsersServiceImpl implements AdminUsersService {
         checkService.fromAndSizeCheck(from, size);
         List<User> users = userRepository.getUsersByIds(ids, from, size);
 
-        return userMapper.userListToUserDTOList(users);
+        return users.stream().map(userMapper::userToUserDTO).toList();
     }
 
     @Override
