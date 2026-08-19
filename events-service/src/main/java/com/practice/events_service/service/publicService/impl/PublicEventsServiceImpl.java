@@ -1,5 +1,6 @@
 package com.practice.events_service.service.publicService.impl;
 
+import com.practice.events_service.amqp.StatsEventPublisher;
 import com.practice.events_service.dto.modelDTO.EventFullDTO;
 import com.practice.events_service.enums.Sort;
 import com.practice.events_service.dto.shortDTO.EventShortDTO;
@@ -27,6 +28,7 @@ public class PublicEventsServiceImpl implements PublicEventsService {
     private final EventMapper eventMapper;
     private final CheckService checkService;
     private final StatsClient statsClient;
+    private final StatsEventPublisher statsEventPublisher;
 
     @Override
     public List<EventShortDTO> getPublishedEvents(String text,
@@ -59,21 +61,30 @@ public class PublicEventsServiceImpl implements PublicEventsService {
             throw new EventNotFoundException("Событие с id=" + eventId + " не найдено в базе данных!");
         }
 
-        postEndpointHit(eventId, request);
+        Event event = findPublishedEvent.get();
 
-        return eventMapper.eventToEventFullDTO(findPublishedEvent.get());
+        if (postEndpointHit(eventId, request)) {
+            event.setViews(event.getViews() + 1);
+        }
+
+        return eventMapper.eventToEventFullDTO(event);
     }
 
-    private void postEndpointHit(Long eventId, HttpServletRequest request) throws URISyntaxException, IOException, InterruptedException {
-        if (request == null || statsClient.checkServiceAvailability() == false) {
-            return;
+    private boolean postEndpointHit(Long eventId, HttpServletRequest request) throws URISyntaxException, IOException, InterruptedException {
+        if (request == null) {
+            return false;
         }
 
-        if (eventId != null && statsClient.checkIpExistsByUri(request) == false) {
+        boolean viewCounted = false;
+
+        if (statsClient.checkServiceAvailability() && eventId != null && statsClient.checkIpExistsByUri(request) == false) {
             eventRepository.incrementEventViews(eventId);
+            viewCounted = true;
         }
 
-        statsClient.post(request);
+        statsEventPublisher.publishHit(request);
+
+        return viewCounted;
     }
 }
 
